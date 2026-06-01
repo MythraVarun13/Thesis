@@ -1,0 +1,231 @@
+file_name,signal_name,category,english_meaning,unit_hypothesis,confidence,sample_val_min,sample_val_max,exclude,zoro_device_id_suffix,zoro_metric,zoro_unit,use_energy,use_hvac,use_heatpump,use_pv,use_battery,use_weather,use_fdd,use_mpc
+TimerRuecklaufAltbau.csv,TimerRuecklaufAltbau,timer_schedule,Return flow timer schedule,,medium,,,False,hvac-timer,return_flow_timer,bool,False,True,False,False,False,False,False,True
+V_realAZmax.csv,V_realAZmax,hp_setpoint,HP runtime setpoint,h,medium,,,False,heat-pump,runtime_setpoint,h,False,False,True,False,False,False,False,False
+V_realAZmin.csv,V_realAZmin,hp_setpoint,HP runtime setpoint,h,medium,,,False,heat-pump,runtime_setpoint,h,False,False,True,False,False,False,False,False
+V_realHysWP.csv,V_realHysWP,hp_setpoint,Heat pump hysteresis setpoint,K,high,,,False,heat-pump,hysteresis_setpoint,K,False,True,True,False,False,False,False,False
+V_realMaxVL_WP.csv,V_realMaxVL_WP,hp_setpoint,Max supply temp setpoint HP,C,high,,,False,heat-pump,max_supply_temp_setpoint,C,False,True,True,False,False,False,False,True
+V_realMinVL_WPcool.csv,V_realMinVL_WPcool,hp_setpoint,Min supply temp cool setpoint HP,C,high,,,False,heat-pump,min_supply_temp_cool_setpoint,C,False,True,True,False,False,False,False,True
+V_realSollTempAZmax.csv,V_realSollTempAZmax,hp_setpoint,HP max setpoint temp for runtime,C,medium,,,False,heat-pump,max_setpoint_temp_runtime,C,False,False,True,False,False,False,False,False
+V_real_AbtauTemperaturBetrieb.csv,V_real_AbtauTemperaturBetrieb,hp_defrost,Heat pump defrost trigger temp,C,high,,,False,heat-pump,defrost_trigger_temp,C,False,False,True,False,False,False,True,False
+V_real_Nachtabsenkung.csv,V_real_Nachtabsenkung,night_setback,Night setback setpoint,C,high,,,False,hvac-controller,night_setback_setpoint,C,False,True,False,False,False,False,False,True
+V_real_NachtabsenkungY4.csv,V_real_NachtabsenkungY4,night_setback,Night setback setpoint,C,high,,,False,hvac-controller,night_setback_setpoint,C,False,True,False,False,False,False,False,True
+V_real_maxAT.csv,V_real_maxAT,hvac_setpoint,Max outdoor temp threshold HP,C,high,,,False,heat-pump-controller,max_outdoor_temp_threshold,C,False,True,True,False,False,False,False,False
+V_real_maxATY4.csv,V_real_maxATY4,hvac_setpoint,Max outdoor temp threshold HP,C,high,,,False,heat-pump-controller,max_outdoor_temp_threshold,C,False,True,True,False,False,False,False,False
+V_real_maxAT_K.csv,V_real_maxAT_K,hvac_setpoint,Max outdoor temp threshold HP,C,high,,,False,heat-pump-controller,max_outdoor_temp_threshold,C,False,True,True,False,False,False,False,False
+V_real_maxVorlaufTemp.csv,V_real_maxVorlaufTemp,heating_curve,Heating curve max supply temp setpoint,C,high,,,False,heat-pump-controller,max_supply_temp_setpoint,C,False,True,False,False,False,False,False,True
+V_real_maxVorlaufTempK.csv,V_real_maxVorlaufTempK,heating_curve,Heating curve max supply temp setpoint,C,high,,,False,heat-pump-controller,max_supply_temp_setpoint,C,False,True,False,False,False,False,False,True
+V_real_maxVorlaufTempY4.csv,V_real_maxVorlaufTempY4,heating_curve,Heating curve max supply temp setpoint,C,high,,,False,heat-pump-controller,max_supply_temp_setpoint,C,False,True,False,False,False,False,False,True
+V_real_minAT.csv,V_real_minAT,hvac_setpoint,Min outdoor temp threshold HP,C,high,,,False,heat-pump-controller,min_outdoor_temp_threshold,C,False,True,True,False,False,False,False,False
+V_real_minATY4.csv,V_real_minATY4,hvac_setpoint,Min outdoor temp threshold HP,C,high,,,False,heat-pump-controller,min_outdoor_temp_threshold,C,False,True,True,False,False,False,False,False
+V_real_minAT_K.csv,V_real_minAT_K,hvac_setpoint,Min outdoor temp threshold HP,C,high,,,False,heat-pump-controller,min_outdoor_temp_threshold,C,False,True,True,False,False,False,False,False
+V_real_minVorlaufTemp.csv,V_real_minVorlaufTemp,heating_curve,Heating curve min supply temp setpoint,C,high,,,False,heat-pump-controller,min_supply_temp_setpoint,C,False,True,False,False,False,False,False,True
+V_real_minVorlaufTempK.csv,V_real_minVorlaufTempK,heating_curve,Heating curve min supply temp setpoint,C,high,,,False,heat-pump-controller,min_supply_temp_setpoint,C,False,True,False,False,False,False,False,True
+V_real_minVorlaufTempY4.csv,V_real_minVorlaufTempY4,heating_curve,Heating curve min supply temp setpoint,C,high,,,False,heat-pump-controller,min_supply_temp_setpoint,C,False,True,False,False,False,False,False,True
+VrealSpeicherWW_BHKW_Aus.csv,VrealSpeicherWW_BHKW_Aus,dhw_setpoint,DHW storage setpoint,C,high,,,False,dhw-controller,dhw_setpoint,C,False,True,False,False,False,False,False,True
+VrealSpeicherWW_BHKW_Ein.csv,VrealSpeicherWW_BHKW_Ein,dhw_setpoint,DHW storage setpoint,C,high,,,False,dhw-controller,dhw_setpoint,C,False,True,False,False,False,False,False,True
+Vreal_WP_Ein_Batterie.csv,Vreal_WP_Ein_Batterie,battery_setpoint,Battery SOC threshold for HP enable,%,high,,,False,battery-controller,hp_enable_battery_soc_threshold,%,False,False,True,False,True,False,False,True
+Vreal_WP_Ein_BatterieKritsch.csv,Vreal_WP_Ein_BatterieKritsch,battery_setpoint,Battery SOC threshold for HP enable,%,high,,,False,battery-controller,hp_enable_battery_soc_threshold,%,False,False,True,False,True,False,False,True
+Vreal_WP_Ein_BatterieKritschHys.csv,Vreal_WP_Ein_BatterieKritschHys,battery_setpoint,Battery SOC threshold for HP enable,%,high,,,False,battery-controller,hp_enable_battery_soc_threshold,%,False,False,True,False,True,False,False,True
+Vreal_maxSpeicher.csv,Vreal_maxSpeicher,storage_setpoint,Max storage setpoint,C,medium,,,False,storage-controller,max_storage_setpoint,C,False,True,False,False,False,False,False,True
+Vreal_maxTempSpeicherUnten.csv,Vreal_maxTempSpeicherUnten,storage_setpoint,Max temp lower storage setpoint,C,medium,,,False,storage-controller,max_temp_lower_storage_setpoint,C,False,True,False,False,False,False,False,False
+Vreal_minSpeicher.csv,Vreal_minSpeicher,storage_setpoint,Min storage setpoint,C,medium,,,False,storage-controller,min_storage_setpoint,C,False,True,False,False,False,False,False,True
+dintVolGasVerbrauchBhkwImp1.csv,dintVolGasVerbrauchBhkwImp1,chp_gas,BHKW gas volume counter,m3,medium,,,False,bhkw,gas_volume_counter,m3,True,False,False,False,False,False,False,False
+dintVolGasVerbrauchBhkwImp2.csv,dintVolGasVerbrauchBhkwImp2,chp_gas,BHKW gas volume counter,m3,medium,,,False,bhkw,gas_volume_counter,m3,True,False,False,False,False,False,False,False
+grealCluster_1_Ladung.csv,grealCluster_1_Ladung,battery_charge,Battery cluster charge,Ah,medium,,,False,battery-cluster,battery_cluster_charge,Ah,False,False,False,False,True,False,True,False
+grealCluster_1_Spannung.csv,grealCluster_1_Spannung,battery_voltage,Battery cluster voltage,V,high,,,False,battery-cluster,battery_cluster_voltage,V,False,False,False,False,True,False,True,False
+grealCluster_2_Ladung.csv,grealCluster_2_Ladung,battery_charge,Battery cluster charge,Ah,medium,,,False,battery-cluster,battery_cluster_charge,Ah,False,False,False,False,True,False,True,False
+grealCluster_2_Spannung.csv,grealCluster_2_Spannung,battery_voltage,Battery cluster voltage,V,high,,,False,battery-cluster,battery_cluster_voltage,V,False,False,False,False,True,False,True,False
+grealCluster_3_Ladung.csv,grealCluster_3_Ladung,battery_charge,Battery cluster charge,Ah,medium,,,False,battery-cluster,battery_cluster_charge,Ah,False,False,False,False,True,False,True,False
+grealCluster_3_Spannung.csv,grealCluster_3_Spannung,battery_voltage,Battery cluster voltage,V,high,,,False,battery-cluster,battery_cluster_voltage,V,False,False,False,False,True,False,True,False
+grealCluster_4_Ladung.csv,grealCluster_4_Ladung,battery_charge,Battery cluster charge,Ah,medium,,,False,battery-cluster,battery_cluster_charge,Ah,False,False,False,False,True,False,True,False
+grealCluster_4_Spannung.csv,grealCluster_4_Spannung,battery_voltage,Battery cluster voltage,V,high,,,False,battery-cluster,battery_cluster_voltage,V,False,False,False,False,True,False,True,False
+grealIstWaermepumpVorlauf.csv,grealIstWaermepumpVorlauf,hp_supply_temp,Heat pump supply temperature,C,high,,,False,heat-pump,supply_temperature,C,False,True,True,False,False,False,True,True
+grealTempAussenGefiltert.csv,grealTempAussenGefiltert,outdoor_temp,Outdoor temperature filtered,C,high,,,False,weather-station,outdoor_temperature,C,False,True,True,False,False,True,False,True
+grealThermLeistungWaermeFBH_Nord.csv,grealThermLeistungWaermeFBH_Nord,thermal_power,Underfloor heating power North,kW,high,,,False,underfloor-heating-nord,thermal_power,kW,True,True,False,False,False,False,False,True
+grealThermLeistungWaermeFBH_Sued.csv,grealThermLeistungWaermeFBH_Sued,thermal_power,Underfloor heating power South,kW,high,,,False,underfloor-heating-sued,thermal_power,kW,True,True,False,False,False,False,False,True
+grealThermLeistungWaermeHalle.csv,grealThermLeistungWaermeHalle,thermal_power,Underfloor heating power Hall,kW,high,,,False,underfloor-heating-hall,thermal_power,kW,True,True,False,False,False,False,False,True
+greal_AZ_WP_Energie.csv,greal_AZ_WP_Energie,hp_energy,Heat pump compressor energy,kWh,high,,,False,heat-pump,compressor_energy,kWh,True,False,True,False,False,False,True,False
+greal_Administrator_HT.csv,greal_Administrator_HT,control_param,Administrator high-tariff state,,medium,,,False,energy-manager,high_tariff_state,bool,True,False,False,False,False,False,False,True
+greal_BatterieLadeZustand.csv,greal_BatterieLadeZustand,battery_soc,Battery state of charge,%,high,,,False,battery-system,battery_soc,%,True,False,False,False,True,False,False,True
+greal_EK_WMZ_WWout.csv,greal_EK_WMZ_WWout,thermal_energy,Heat meter energy DHW output,kWh,high,,,False,heat-meter,dhw_energy_output,kWh,True,True,False,False,False,False,False,False
+greal_E_BatterieAbgabe.csv,greal_E_BatterieAbgabe,battery_energy,Battery energy discharged,kWh,high,,,False,battery-system,battery_energy_discharged,kWh,True,False,False,False,True,False,False,False
+greal_E_BatterieLaden.csv,greal_E_BatterieLaden,battery_energy,Battery energy charged,kWh,high,,,False,battery-system,battery_energy_charged,kWh,True,False,False,False,True,False,False,False
+greal_E_ErzeugungEnFa.csv,greal_E_ErzeugungEnFa,pv_generation,PV total energy generated,kWh,high,,,False,pv-system,pv_energy_total,kWh,True,False,False,True,False,False,False,False
+greal_E_Gebaeude.csv,greal_E_Gebaeude,building_energy,Building electrical energy,kWh,high,,,False,building-meter,electrical_energy_total,kWh,True,False,False,False,False,False,False,False
+greal_E_GebaeudeNord.csv,greal_E_GebaeudeNord,building_energy,Building electrical energy,kWh,high,,,False,building-meter,electrical_energy_total,kWh,True,False,False,False,False,False,False,False
+greal_E_GebaeudeSued.csv,greal_E_GebaeudeSued,building_energy,Building electrical energy,kWh,high,,,False,building-meter,electrical_energy_total,kWh,True,False,False,False,False,False,False,False
+greal_E_GebaeudeSystem.csv,greal_E_GebaeudeSystem,building_energy,Building electrical energy,kWh,high,,,False,building-meter,electrical_energy_total,kWh,True,False,False,False,False,False,False,False
+greal_E_Gesamtverbrauch.csv,greal_E_Gesamtverbrauch,building_energy,Total energy consumption,kWh,high,,,False,building-meter,total_energy_consumption,kWh,True,False,False,False,False,False,False,True
+greal_E_PV1.csv,greal_E_PV1,pv_energy,PV string 1 energy,kWh,high,,,False,pv-string-1,pv_energy,kWh,True,False,False,True,False,False,False,False
+greal_E_PV2.csv,greal_E_PV2,pv_energy,PV string 2 energy,kWh,high,,,False,pv-string-2,pv_energy,kWh,True,False,False,True,False,False,False,False
+greal_E_PV3.csv,greal_E_PV3,pv_energy,PV string 3 energy,kWh,high,,,False,pv-string-3,pv_energy,kWh,True,False,False,True,False,False,False,False
+greal_E_PV4.csv,greal_E_PV4,pv_energy,PV string 4 energy,kWh,high,,,False,pv-string-4,pv_energy,kWh,True,False,False,True,False,False,False,False
+greal_E_PV5.csv,greal_E_PV5,pv_energy,PV string 5 energy,kWh,high,,,False,pv-string-5,pv_energy,kWh,True,False,False,True,False,False,False,False
+greal_E_PV6.csv,greal_E_PV6,pv_energy,PV string 6 energy,kWh,high,,,False,pv-string-6,pv_energy,kWh,True,False,False,True,False,False,False,False
+greal_E_PV7.csv,greal_E_PV7,pv_energy,PV string 7 energy,kWh,high,,,False,pv-string-7,pv_energy,kWh,True,False,False,True,False,False,False,False
+greal_E_PV_Gesamt.csv,greal_E_PV_Gesamt,pv_energy,PV total energy all strings,kWh,high,,,False,pv-system,pv_energy_total,kWh,True,False,False,True,False,False,False,True
+greal_E_Tankstelle1.csv,greal_E_Tankstelle1,ev_energy,EV charger 1 energy,kWh,high,,,False,ev-charger-1,energy,kWh,True,False,False,False,False,False,False,False
+greal_E_Tankstelle2.csv,greal_E_Tankstelle2,ev_energy,EV charger 2 energy,kWh,high,,,False,ev-charger-2,energy,kWh,True,False,False,False,False,False,False,False
+greal_E_Tankstelle3.csv,greal_E_Tankstelle3,ev_energy,EV charger 3 energy,kWh,high,,,False,ev-charger-3,energy,kWh,True,False,False,False,False,False,False,False
+greal_E_WP.csv,greal_E_WP,hp_energy,Heat pump total electrical energy,kWh,high,,,False,heat-pump,electrical_energy,kWh,True,False,True,False,False,False,True,False
+greal_E__WMZ_BHKW.csv,greal_E__WMZ_BHKW,thermal_energy,BHKW heat meter total energy,kWh,high,,,False,heat-meter-bhkw,thermal_energy,kWh,True,False,False,False,False,False,True,False
+greal_E__WMZ_WWout.csv,greal_E__WMZ_WWout,thermal_energy,DHW heat meter output energy,kWh,high,,,False,heat-meter-dhw,dhw_output_energy,kWh,True,True,False,False,False,False,False,False
+greal_E_bhkw1.csv,greal_E_bhkw1,chp_energy,BHKW unit 1 electrical energy,kWh,high,,,False,bhkw-1,electrical_energy,kWh,True,False,False,False,False,False,False,False
+greal_E_bhkw2.csv,greal_E_bhkw2,chp_energy,BHKW unit 2 electrical energy,kWh,high,,,False,bhkw-2,electrical_energy,kWh,True,False,False,False,False,False,False,False
+greal_Gas_bhkw1.csv,greal_Gas_bhkw1,chp_gas,BHKW unit 1 gas consumption,m3,high,,,False,bhkw-1,gas_volume,m3,True,False,False,False,False,False,True,False
+greal_Gas_bhkw2.csv,greal_Gas_bhkw2,chp_gas,BHKW unit 2 gas consumption,m3,high,,,False,bhkw-2,gas_volume,m3,True,False,False,False,False,False,True,False
+greal_Gas_bhkwges.csv,greal_Gas_bhkwges,chp_gas,BHKW total gas consumption,m3,high,,,False,bhkw,gas_volume_total,m3,True,False,False,False,False,False,False,True
+greal_JalousienMaxWind.csv,greal_JalousienMaxWind,control_param,Blind shading max wind threshold,m/s,medium,,,False,shading-controller,max_wind_threshold,m/s,False,True,False,False,False,False,False,False
+greal_K_WMZ_E_Altbau.csv,greal_K_WMZ_E_Altbau,thermal_energy,Thermal energy cooling circuit,kWh,high,,,False,heat-meter,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_K_WMZ_E_Bespr.csv,greal_K_WMZ_E_Bespr,thermal_energy,Thermal energy cooling circuit,kWh,high,,,False,heat-meter,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_K_WMZ_E_GF.csv,greal_K_WMZ_E_GF,thermal_energy,Thermal energy cooling circuit,kWh,high,,,False,heat-meter,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_K_WMZ_E_Halle.csv,greal_K_WMZ_E_Halle,thermal_energy,Thermal energy cooling circuit,kWh,high,,,False,heat-meter,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_K_WMZ_E_Nord.csv,greal_K_WMZ_E_Nord,thermal_energy,Thermal energy cooling circuit,kWh,high,,,False,heat-meter,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_K_WMZ_E_Server.csv,greal_K_WMZ_E_Server,thermal_energy,Thermal energy cooling circuit,kWh,high,,,False,heat-meter,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_K_WMZ_E_Sued.csv,greal_K_WMZ_E_Sued,thermal_energy,Thermal energy cooling circuit,kWh,high,,,False,heat-meter,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_K_WMZ_E_WP.csv,greal_K_WMZ_E_WP,thermal_energy,Thermal energy cooling circuit,kWh,high,,,False,heat-meter,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_K_WMZ_E_bhkw1.csv,greal_K_WMZ_E_bhkw1,thermal_energy,Thermal energy cooling circuit,kWh,high,,,False,heat-meter,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_K_WMZ_E_bhkw2.csv,greal_K_WMZ_E_bhkw2,thermal_energy,Thermal energy cooling circuit,kWh,high,,,False,heat-meter,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_K_WMZ_P_Altbau.csv,greal_K_WMZ_P_Altbau,thermal_power,Thermal power cooling circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_K_WMZ_P_Bespr.csv,greal_K_WMZ_P_Bespr,thermal_power,Thermal power cooling circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_K_WMZ_P_GF.csv,greal_K_WMZ_P_GF,thermal_power,Thermal power cooling circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_K_WMZ_P_Halle.csv,greal_K_WMZ_P_Halle,thermal_power,Thermal power cooling circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_K_WMZ_P_Nord.csv,greal_K_WMZ_P_Nord,thermal_power,Thermal power cooling circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_K_WMZ_P_Server.csv,greal_K_WMZ_P_Server,thermal_power,Thermal power cooling circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_K_WMZ_P_Sued.csv,greal_K_WMZ_P_Sued,thermal_power,Thermal power cooling circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_K_WMZ_P_WP.csv,greal_K_WMZ_P_WP,thermal_power,Thermal power cooling circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_K_WMZ_P_bhkw1.csv,greal_K_WMZ_P_bhkw1,thermal_power,Thermal power cooling circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_K_WMZ_P_bhkw2.csv,greal_K_WMZ_P_bhkw2,thermal_power,Thermal power cooling circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_K_WMZ_TR_Altbau.csv,greal_K_WMZ_TR_Altbau,heating_return_temp,Heating return temp cooling circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TR_Bespr.csv,greal_K_WMZ_TR_Bespr,heating_return_temp,Heating return temp cooling circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TR_GF.csv,greal_K_WMZ_TR_GF,heating_return_temp,Heating return temp cooling circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TR_Halle.csv,greal_K_WMZ_TR_Halle,heating_return_temp,Heating return temp cooling circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TR_Nord.csv,greal_K_WMZ_TR_Nord,heating_return_temp,Heating return temp cooling circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TR_Server.csv,greal_K_WMZ_TR_Server,heating_return_temp,Heating return temp cooling circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TR_Sued.csv,greal_K_WMZ_TR_Sued,heating_return_temp,Heating return temp cooling circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TR_WP.csv,greal_K_WMZ_TR_WP,heating_return_temp,Heating return temp cooling circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TR_bhkw1.csv,greal_K_WMZ_TR_bhkw1,heating_return_temp,Heating return temp cooling circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TR_bhkw2.csv,greal_K_WMZ_TR_bhkw2,heating_return_temp,Heating return temp cooling circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TV_Altbau.csv,greal_K_WMZ_TV_Altbau,heating_supply_temp,Heating supply temp cooling circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TV_Bespr.csv,greal_K_WMZ_TV_Bespr,heating_supply_temp,Heating supply temp cooling circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TV_GF.csv,greal_K_WMZ_TV_GF,heating_supply_temp,Heating supply temp cooling circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TV_Halle.csv,greal_K_WMZ_TV_Halle,heating_supply_temp,Heating supply temp cooling circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TV_Nord.csv,greal_K_WMZ_TV_Nord,heating_supply_temp,Heating supply temp cooling circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TV_Server.csv,greal_K_WMZ_TV_Server,heating_supply_temp,Heating supply temp cooling circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TV_Sued.csv,greal_K_WMZ_TV_Sued,heating_supply_temp,Heating supply temp cooling circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TV_WP.csv,greal_K_WMZ_TV_WP,heating_supply_temp,Heating supply temp cooling circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TV_bhkw1.csv,greal_K_WMZ_TV_bhkw1,heating_supply_temp,Heating supply temp cooling circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_K_WMZ_TV_bhkw2.csv,greal_K_WMZ_TV_bhkw2,heating_supply_temp,Heating supply temp cooling circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_LeistungBHKW1.csv,greal_LeistungBHKW1,chp_power,BHKW unit 1 power,kW,high,,,False,bhkw-1,electrical_power,kW,True,False,False,False,False,False,True,False
+greal_LeistungBHKW2.csv,greal_LeistungBHKW2,chp_power,BHKW unit 2 power,kW,high,,,False,bhkw-2,electrical_power,kW,True,False,False,False,False,False,True,False
+greal_LeistungGebaeude.csv,greal_LeistungGebaeude,building_power,Building electrical power demand,kW,high,,,False,building-meter,electrical_power_demand,kW,True,True,False,False,False,False,True,True
+greal_LeistungTankStelle1.csv,greal_LeistungTankStelle1,ev_power,EV charger 1 power,kW,high,,,False,ev-charger-1,power,kW,True,False,False,False,False,False,False,True
+greal_LeistungTankStelle2.csv,greal_LeistungTankStelle2,ev_power,EV charger 2 power,kW,high,,,False,ev-charger-2,power,kW,True,False,False,False,False,False,False,True
+greal_LeistungTankStelle3.csv,greal_LeistungTankStelle3,ev_power,EV charger 3 power,kW,high,,,False,ev-charger-3,power,kW,True,False,False,False,False,False,False,True
+greal_LeistungTankStellen.csv,greal_LeistungTankStellen,unknown,No rule matched,,low,,,False,,,,False,False,False,False,False,False,False,False
+greal_Nachtabsenkung.csv,greal_Nachtabsenkung,night_setback,Night setback active state,,high,,,False,hvac-controller,night_setback_active,bool,False,True,False,False,False,False,False,True
+greal_PV_Ges_prog.csv,greal_PV_Ges_prog,pv_forecast,PV generation forecast,kWh,high,,,False,pv-system,pv_energy_forecast,kWh,False,False,False,True,False,True,False,True
+greal_RL_TempFBH_OG.csv,greal_RL_TempFBH_OG,zone_return_temp,Underfloor heating return temp upper floor,C,high,,,False,underfloor-heating-og,return_temperature,C,False,True,False,False,False,False,True,False
+greal_SollTempAZplus.csv,greal_SollTempAZplus,hvac_setpoint,Heating setpoint AZ+,C,medium,,,False,hvac-controller,heating_setpoint_az_plus,C,False,True,False,False,False,False,False,True
+greal_Soll_T_BKT.csv,greal_Soll_T_BKT,zone_setpoint,Concrete core activation setpoint,C,high,,,False,bkt-controller,setpoint,C,False,True,False,False,False,False,False,True
+greal_Speicher_WW_Prozent.csv,greal_Speicher_WW_Prozent,dhw_level,DHW storage fill level,%,high,,,False,dhw-storage,fill_level_percent,%,False,True,False,False,False,False,True,True
+greal_StellungFortluftKlappe.csv,greal_StellungFortluftKlappe,damper_position,Exhaust air damper position,%,high,,,False,ventilation,exhaust_damper_position,%,False,True,False,False,False,False,True,False
+greal_StellungUmluftKlappe.csv,greal_StellungUmluftKlappe,damper_position,Recirculation damper position,%,high,,,False,ventilation,recirculation_damper_position,%,False,True,False,False,False,False,True,False
+greal_T_Server_EG.csv,greal_T_Server_EG,indoor_temp,Server room temperature,C,high,,,False,zone-sensor-server,indoor_temperature,C,False,True,False,False,False,False,True,False
+greal_VL_TempFBH_OG.csv,greal_VL_TempFBH_OG,zone_supply_temp,Underfloor heating supply temp upper floor,C,high,,,False,underfloor-heating-og,supply_temperature,C,False,True,False,False,False,False,True,True
+greal_VorlaufTempKennlinie.csv,greal_VorlaufTempKennlinie,heating_curve,Heating curve supply temp calculated,C,high,,,False,heat-pump-controller,heating_curve_supply_temp,C,False,True,False,False,False,False,False,True
+greal_VorlaufTempKennlinie_K.csv,greal_VorlaufTempKennlinie_K,heating_curve,Heating curve supply temp calculated,C,high,,,False,heat-pump-controller,heating_curve_supply_temp,C,False,True,False,False,False,False,False,True
+greal_WMZ_Hz_Erz_BHKW.csv,greal_WMZ_Hz_Erz_BHKW,thermal_energy,Heat generation energy from BHKW,kWh,high,,,False,bhkw,heat_generation_energy,kWh,True,False,False,False,False,False,True,False
+greal_WMZ_Hz_Erz_WP.csv,greal_WMZ_Hz_Erz_WP,thermal_energy,Heat generation energy from heat pump,kWh,high,,,False,heat-pump,heat_generation_energy,kWh,True,False,True,False,False,False,True,False
+greal_WMZ_Hz_Erz_ges.csv,greal_WMZ_Hz_Erz_ges,thermal_energy,Total heat generation energy,kWh,high,,,False,building-system,heat_generation_energy_total,kWh,True,False,False,False,False,False,False,True
+greal_WMZ_Kalt.csv,greal_WMZ_Kalt,thermal_energy,Heat meter energy cooling total,kWh,high,,,False,heat-meter,cooling_energy_total,kWh,True,True,False,False,False,False,False,False
+greal_WMZ_Kalt_Erz_WP.csv,greal_WMZ_Kalt_Erz_WP,thermal_energy,Heat meter energy cooling total,kWh,high,,,False,heat-meter,cooling_energy_total,kWh,True,True,False,False,False,False,False,False
+greal_WMZ_Warm.csv,greal_WMZ_Warm,thermal_energy,Total heating circuit energy,kWh,high,,,False,heat-meter,heating_energy_total,kWh,True,True,False,False,False,False,False,False
+greal_WP1AbtauSek.csv,greal_WP1AbtauSek,hp_defrost,Heat pump defrost duration,s,high,,,False,heat-pump,defrost_duration,s,False,False,True,False,False,False,True,False
+greal_WP2AbtauSek.csv,greal_WP2AbtauSek,hp_defrost,Heat pump defrost duration,s,high,,,False,heat-pump,defrost_duration,s,False,False,True,False,False,False,True,False
+greal_WP3AbtauSek.csv,greal_WP3AbtauSek,hp_defrost,Heat pump defrost duration,s,high,,,False,heat-pump,defrost_duration,s,False,False,True,False,False,False,True,False
+greal_W_WMZ_E_Altbau.csv,greal_W_WMZ_E_Altbau,thermal_energy,Heating energy old building,kWh,high,,,False,heat-meter-altbau,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_W_WMZ_E_Halle.csv,greal_W_WMZ_E_Halle,thermal_energy,Heating energy hall,kWh,high,,,False,heat-meter-halle,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_W_WMZ_E_Nord.csv,greal_W_WMZ_E_Nord,thermal_energy,Heating energy north zone,kWh,high,,,False,heat-meter-nord,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_W_WMZ_E_Sued.csv,greal_W_WMZ_E_Sued,thermal_energy,Heating energy south zone,kWh,high,,,False,heat-meter-sued,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_W_WMZ_E_WP.csv,greal_W_WMZ_E_WP,thermal_energy,Heating energy heat pump circuit,kWh,high,,,False,heat-meter-wp,thermal_energy,kWh,True,True,True,False,False,False,False,False
+greal_W_WMZ_E_bhkw1.csv,greal_W_WMZ_E_bhkw1,thermal_energy,Heating energy BHKW 1 circuit,kWh,high,,,False,heat-meter-bhkw1,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_W_WMZ_E_bhkw2.csv,greal_W_WMZ_E_bhkw2,thermal_energy,Heating energy BHKW 2 circuit,kWh,high,,,False,heat-meter-bhkw2,thermal_energy,kWh,True,True,False,False,False,False,False,False
+greal_W_WMZ_P_Altbau.csv,greal_W_WMZ_P_Altbau,thermal_power,Thermal power heating circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_W_WMZ_P_Halle.csv,greal_W_WMZ_P_Halle,thermal_power,Thermal power heating circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_W_WMZ_P_Nord.csv,greal_W_WMZ_P_Nord,thermal_power,Thermal power heating circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_W_WMZ_P_Sued.csv,greal_W_WMZ_P_Sued,thermal_power,Thermal power heating circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_W_WMZ_P_WP.csv,greal_W_WMZ_P_WP,thermal_power,Thermal power heating circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_W_WMZ_P_bhkw1.csv,greal_W_WMZ_P_bhkw1,thermal_power,Thermal power heating circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_W_WMZ_P_bhkw2.csv,greal_W_WMZ_P_bhkw2,thermal_power,Thermal power heating circuit,kW,high,,,False,heat-meter,thermal_power,kW,True,True,False,False,False,False,True,True
+greal_W_WMZ_TR_Altbau.csv,greal_W_WMZ_TR_Altbau,heating_return_temp,Heating return temp heating circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_W_WMZ_TR_Halle.csv,greal_W_WMZ_TR_Halle,heating_return_temp,Heating return temp heating circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_W_WMZ_TR_Nord.csv,greal_W_WMZ_TR_Nord,heating_return_temp,Heating return temp heating circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_W_WMZ_TR_Sued.csv,greal_W_WMZ_TR_Sued,heating_return_temp,Heating return temp heating circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_W_WMZ_TR_WP.csv,greal_W_WMZ_TR_WP,heating_return_temp,Heating return temp heating circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_W_WMZ_TR_bhkw1.csv,greal_W_WMZ_TR_bhkw1,heating_return_temp,Heating return temp heating circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_W_WMZ_TR_bhkw2.csv,greal_W_WMZ_TR_bhkw2,heating_return_temp,Heating return temp heating circuit,C,high,,,False,heat-meter,return_temperature,C,False,True,True,False,False,False,True,True
+greal_W_WMZ_TV_Altbau.csv,greal_W_WMZ_TV_Altbau,heating_supply_temp,Heating supply temp heating circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_W_WMZ_TV_Halle.csv,greal_W_WMZ_TV_Halle,heating_supply_temp,Heating supply temp heating circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_W_WMZ_TV_Nord.csv,greal_W_WMZ_TV_Nord,heating_supply_temp,Heating supply temp heating circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_W_WMZ_TV_Sued.csv,greal_W_WMZ_TV_Sued,heating_supply_temp,Heating supply temp heating circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_W_WMZ_TV_WP.csv,greal_W_WMZ_TV_WP,heating_supply_temp,Heating supply temp heating circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_W_WMZ_TV_bhkw1.csv,greal_W_WMZ_TV_bhkw1,heating_supply_temp,Heating supply temp heating circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_W_WMZ_TV_bhkw2.csv,greal_W_WMZ_TV_bhkw2,heating_supply_temp,Heating supply temp heating circuit,C,high,,,False,heat-meter,supply_temperature,C,False,True,True,False,False,False,True,True
+greal_Wochenendwert.csv,greal_Wochenendwert,hvac_setpoint,Weekend setpoint value,C,medium,,,False,hvac-controller,weekend_setpoint,C,False,True,False,False,False,False,False,True
+greal_realTempVorlBKT_EG.csv,greal_realTempVorlBKT_EG,zone_supply_temp,Concrete core supply temp ground floor,C,high,,,False,bkt-eg,supply_temperature,C,False,True,False,False,False,False,True,True
+green_bat.csv,green_bat,battery_current,Battery cluster current raw,A,medium,,,False,battery-cluster,battery_cluster_current,A,False,False,False,False,True,False,True,False
+green_t1.csv,green_t1,battery_temp,Battery cluster temperature,C,medium,,,False,battery-cluster,battery_cluster_temp,C,False,False,False,False,True,False,True,False
+green_t2.csv,green_t2,battery_temp,Battery cluster temperature,C,medium,,,False,battery-cluster,battery_cluster_temp,C,False,False,False,False,True,False,True,False
+green_t3.csv,green_t3,battery_temp,Battery cluster temperature,C,medium,,,False,battery-cluster,battery_cluster_temp,C,False,False,False,False,True,False,True,False
+realIPhARmsST24.csv,realIPhARmsST24,current_rms,Phase A current RMS,A,high,,,False,electrical-meter,phase_a_current_rms,A,True,False,False,False,False,False,True,False
+realIPhARmsST25.csv,realIPhARmsST25,current_rms,Phase A current RMS,A,high,,,False,electrical-meter,phase_a_current_rms,A,True,False,False,False,False,False,True,False
+realIPhBRmsST24.csv,realIPhBRmsST24,current_rms,Phase B current RMS,A,high,,,False,electrical-meter,phase_b_current_rms,A,True,False,False,False,False,False,True,False
+realIPhBRmsST25.csv,realIPhBRmsST25,current_rms,Phase B current RMS,A,high,,,False,electrical-meter,phase_b_current_rms,A,True,False,False,False,False,False,True,False
+realIPhCRmsST24.csv,realIPhCRmsST24,current_rms,Phase C current RMS,A,high,,,False,electrical-meter,phase_c_current_rms,A,True,False,False,False,False,False,True,False
+realIPhCRmsST25.csv,realIPhCRmsST25,current_rms,Phase C current RMS,A,high,,,False,electrical-meter,phase_c_current_rms,A,True,False,False,False,False,False,True,False
+realIstTempKaltWasOben.csv,realIstTempKaltWasOben,dhw_temp,Cold water temperature,C,high,,,False,dhw-storage,cold_water_temperature,C,False,True,False,False,False,False,True,False
+realIstTempKaltWasObenMitte.csv,realIstTempKaltWasObenMitte,dhw_temp,Cold water temperature,C,high,,,False,dhw-storage,cold_water_temperature,C,False,True,False,False,False,False,True,False
+realIstTempKaltWasUnt.csv,realIstTempKaltWasUnt,dhw_temp,Cold water temperature,C,high,,,False,dhw-storage,cold_water_temperature,C,False,True,False,False,False,False,True,False
+realIstTempKaltWasUntMitte.csv,realIstTempKaltWasUntMitte,dhw_temp,Cold water temperature,C,high,,,False,dhw-storage,cold_water_temperature,C,False,True,False,False,False,False,True,False
+realIstTempPuffAltbau.csv,realIstTempPuffAltbau,buffer_temp,Buffer tank temperature,C,high,,,False,buffer-tank,temperature,C,False,True,False,False,False,False,True,False
+realIstTempRuecklPuffAltbau.csv,realIstTempRuecklPuffAltbau,buffer_temp,Buffer tank return temperature,C,high,,,False,buffer-tank,return_temperature,C,False,True,False,False,False,False,True,False
+realIstTempWarmWasOben.csv,realIstTempWarmWasOben,dhw_temp,DHW warm water temperature,C,high,,,False,dhw-storage,dhw_temperature,C,False,True,False,False,False,False,True,True
+realIstTempWarmWasObenMitte.csv,realIstTempWarmWasObenMitte,dhw_temp,DHW warm water temperature,C,high,,,False,dhw-storage,dhw_temperature,C,False,True,False,False,False,False,True,True
+realIstTempWarmWasUnt.csv,realIstTempWarmWasUnt,dhw_temp,DHW warm water temperature,C,high,,,False,dhw-storage,dhw_temperature,C,False,True,False,False,False,False,True,True
+realIstTempWarmWasUntMitte.csv,realIstTempWarmWasUntMitte,dhw_temp,DHW warm water temperature,C,high,,,False,dhw-storage,dhw_temperature,C,False,True,False,False,False,False,True,True
+realLeistungGebNord.csv,realLeistungGebNord,building_power,Building zone electrical power,kW,medium,,,False,building-meter,zone_electrical_power,kW,True,False,False,False,False,False,False,False
+realLeistungGebSued.csv,realLeistungGebSued,building_power,Building zone electrical power,kW,medium,,,False,building-meter,zone_electrical_power,kW,True,False,False,False,False,False,False,False
+realLeistungGebSystem.csv,realLeistungGebSystem,building_power,Building zone electrical power,kW,medium,,,False,building-meter,zone_electrical_power,kW,True,False,False,False,False,False,False,False
+realLeistungsfaktorST24.csv,realLeistungsfaktorST24,power_factor,Power factor,,high,,,False,electrical-meter,power_factor,,True,False,False,False,False,False,True,False
+realLeistungsfaktorST25.csv,realLeistungsfaktorST25,power_factor,Power factor,,high,,,False,electrical-meter,power_factor,,True,False,False,False,False,False,True,False
+realSollwertReglerWP1.csv,realSollwertReglerWP1,hp_setpoint,Heat pump 1 controller setpoint,C,high,,,False,heat-pump,controller_setpoint,C,False,True,True,False,False,False,False,True
+realTempRuecklBKT_EG.csv,realTempRuecklBKT_EG,zone_return_temp,Concrete core return temp ground floor,C,high,,,False,bkt-eg,return_temperature,C,False,True,False,False,False,False,True,False
+real_BatterieAbgabeLeistung.csv,real_BatterieAbgabeLeistung,battery_power,Battery discharge power,kW,high,,,False,battery-system,battery_discharge_power,kW,True,False,False,False,True,False,False,True
+real_BatterieLadeLeistung.csv,real_BatterieLadeLeistung,battery_power,Battery charge power,kW,high,,,False,battery-system,battery_charge_power,kW,True,False,False,False,True,False,False,True
+real_BatterieLeistung.csv,real_BatterieLeistung,battery_power,Battery net power,kW,high,,,False,battery-system,battery_power_net,kW,True,False,False,False,True,False,True,True
+real_BatterieVerlustEnergie.csv,real_BatterieVerlustEnergie,battery_energy,Battery loss energy,kWh,high,,,False,battery-system,battery_loss_energy,kWh,False,False,False,False,True,False,True,False
+real_BatterieVerlustLeistung.csv,real_BatterieVerlustLeistung,battery_power,Battery loss power,kW,high,,,False,battery-system,battery_loss_power,kW,False,False,False,False,True,False,True,False
+real_E_VerlustEnFa.csv,real_E_VerlustEnFa,system_loss,EnFa system loss energy,kWh,medium,,,False,building-system,system_loss_energy,kWh,True,False,False,False,False,False,True,False
+real_E_Verlustbhkw1.csv,real_E_Verlustbhkw1,chp_loss,BHKW loss energy,kWh,high,,,False,bhkw,loss_energy,kWh,False,False,False,False,False,False,True,False
+real_E_Verlustbhkw2.csv,real_E_Verlustbhkw2,chp_loss,BHKW loss energy,kWh,high,,,False,bhkw,loss_energy,kWh,False,False,False,False,False,False,True,False
+real_PV_Gesamt.csv,real_PV_Gesamt,pv_generation,PV total power output,kW,high,,,False,pv-system,pv_power_total,kW,True,False,False,True,False,False,False,True
+real_P_BHKW.csv,real_P_BHKW,chp_power,BHKW electrical power output,kW,high,,,False,bhkw,electrical_power,kW,True,False,False,False,False,False,True,True
+real_VerlustleistungEnFa.csv,real_VerlustleistungEnFa,system_loss,EnFa system loss power,kW,medium,,,False,building-system,system_loss_power,kW,True,False,False,False,False,False,True,False
+real_WirkleistungEnFa.csv,real_WirkleistungEnFa,building_power,Building active power net,kW,medium,,,False,building-meter,active_power_net,kW,True,True,False,False,False,False,False,True
+real_WirkleistungErzeugungEnFa.csv,real_WirkleistungErzeugungEnFa,pv_generation,Active power generation PV+BHKW,kW,medium,,,False,generation-system,active_power_generation,kW,True,False,False,True,False,False,True,False
+real_aktGesamtLeistungBHKW.csv,real_aktGesamtLeistungBHKW,chp_power,BHKW total active power,kW,high,,,False,bhkw,total_active_power,kW,True,False,False,False,False,False,True,False
+real_aktVerbrauchGasBhkwImp.csv,real_aktVerbrauchGasBhkwImp,chp_gas,BHKW gas consumption rate,m3/h,medium,,,False,bhkw,gas_consumption_rate,m3/h,True,False,False,False,False,False,True,False
+real_aktVerbrauchGasBhkwImp1.csv,real_aktVerbrauchGasBhkwImp1,chp_gas,BHKW gas consumption rate,m3/h,medium,,,False,bhkw,gas_consumption_rate,m3/h,True,False,False,False,False,False,True,False
+real_aktVerbrauchGasBhkwImp2.csv,real_aktVerbrauchGasBhkwImp2,chp_gas,BHKW gas consumption rate,m3/h,medium,,,False,bhkw,gas_consumption_rate,m3/h,True,False,False,False,False,False,True,False
+real_aktVerlustLeistungBHKW.csv,real_aktVerlustLeistungBHKW,chp_loss,BHKW loss power,kW,high,,,False,bhkw,loss_power,kW,False,False,False,False,False,False,True,False
+real_aktVerlustLeistungBHKW1.csv,real_aktVerlustLeistungBHKW1,chp_loss,BHKW loss power,kW,high,,,False,bhkw,loss_power,kW,False,False,False,False,False,False,True,False
+real_aktVerlustLeistungBHKW2.csv,real_aktVerlustLeistungBHKW2,chp_loss,BHKW loss power,kW,high,,,False,bhkw,loss_power,kW,False,False,False,False,False,False,True,False
+sun_alt.csv,sun_alt,solar,Sun altitude angle,deg,high,,,False,weather-station,sun_altitude,deg,False,False,False,True,False,True,False,True
+sun_azi.csv,sun_azi,solar,Sun azimuth angle,deg,high,,,False,weather-station,sun_azimuth,deg,False,False,False,True,False,True,False,True
+val1006.csv,val1006,unknown,Unknown control state -1/0/1,,low,,,False,unknown,state_val1006,,False,False,False,False,False,False,False,False
+val1007.csv,val1007,unknown,Unknown control state -1/0/1,,low,,,False,unknown,state_val1007,,False,False,False,False,False,False,False,False
+val1008.csv,val1008,unknown,Unknown analog signal 65-92,,low,,,False,unknown,analog_val1008,,False,False,False,False,False,False,False,False
+val1009.csv,val1009,unknown,Unknown analog signal 65-92,,low,,,False,unknown,analog_val1009,,False,False,False,False,False,False,False,False
+wind_now.csv,wind_now,weather,Wind speed current,m/s,high,,,False,weather-station,wind_speed_now,m/s,False,False,False,True,False,True,False,True
+wind_tomorrow.csv,wind_tomorrow,weather_forecast,Wind speed tomorrow forecast,m/s,high,,,False,weather-station,wind_speed_forecast,m/s,False,False,False,True,False,True,False,True

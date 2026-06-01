@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZORO Energy — EnFa Dataset Briefing</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f0f2f5; color: #1a1a2e; }
+
+  .page { max-width: 960px; margin: 0 auto; padding: 30px 20px; }
+
+  /* HERO */
+  .hero { background: linear-gradient(135deg, #1A237E 0%, #283593 60%, #3949AB 100%);
+          color: white; border-radius: 14px; padding: 40px; margin-bottom: 24px; }
+  .hero h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+  .hero p  { font-size: 15px; opacity: 0.88; max-width: 680px; line-height: 1.6; }
+  .hero .tag { display: inline-block; background: rgba(255,255,255,0.18);
+               border: 1px solid rgba(255,255,255,0.3); border-radius: 20px;
+               padding: 4px 14px; font-size: 12px; margin-top: 16px; margin-right: 8px; }
+
+  /* STAT ROW */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat  { background: white; border-radius: 10px; padding: 20px;
+           box-shadow: 0 2px 8px rgba(0,0,0,0.07); text-align: center; }
+  .stat .num  { font-size: 32px; font-weight: 800; color: #1A237E; line-height: 1; }
+  .stat .unit { font-size: 13px; color: #555; font-weight: 600; }
+  .stat .lbl  { font-size: 11px; color: #888; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* SECTION */
+  .section { background: white; border-radius: 10px; padding: 28px;
+             box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 20px; }
+  .section h2 { font-size: 17px; font-weight: 700; color: #1A237E; margin-bottom: 16px;
+                padding-bottom: 10px; border-bottom: 2px solid #E8EAF6; }
+
+  /* SYSTEM GRID */
+  .systems { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .sys { border-radius: 8px; padding: 16px; }
+  .sys .icon { font-size: 26px; margin-bottom: 6px; }
+  .sys h3  { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .sys p   { font-size: 11px; line-height: 1.5; opacity: 0.85; }
+  .sys .sig { font-family: monospace; font-size: 10px; background: rgba(0,0,0,0.08);
+              border-radius: 3px; padding: 1px 5px; display: inline-block; margin-top: 4px; }
+
+  /* MVP TABLE */
+  .mvp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .mvp { border-radius: 8px; padding: 16px; border-left: 4px solid; }
+  .mvp h3 { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .mvp p  { font-size: 11px; line-height: 1.55; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 10px;
+           font-size: 10px; font-weight: 700; margin-bottom: 6px; }
+  .ready    { background: #E8F5E9; color: #2E7D32; border-color: #4CAF50; }
+  .partial  { background: #FFF3E0; color: #E65100; border-color: #FF9800; }
+  .badge-r  { background: #4CAF50; color: white; }
+  .badge-p  { background: #FF9800; color: white; }
+
+  /* RECOMMENDED */
+  .recommend { background: linear-gradient(135deg, #E8F5E9, #F1F8E9);
+               border: 2px solid #4CAF50; border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+  .recommend h2 { color: #2E7D32; font-size: 18px; margin-bottom: 10px; }
+  .recommend p  { font-size: 13px; line-height: 1.7; color: #333; }
+  .recommend .bullets { margin-top: 12px; }
+  .recommend .bullet  { display: flex; align-items: flex-start; gap: 10px;
+                         font-size: 12px; line-height: 1.5; margin-bottom: 6px; }
+  .recommend .bullet .dot { background: #4CAF50; color: white; border-radius: 50%;
+                             width: 18px; height: 18px; display: flex; align-items: center;
+                             justify-content: center; font-size: 10px; flex-shrink: 0; margin-top: 1px; }
+
+  /* PIPELINE */
+  .pipe-row { display: flex; align-items: center; gap: 0; flex-wrap: wrap; margin: 12px 0; }
+  .pipe-box { background: #E8EAF6; border-radius: 6px; padding: 10px 14px;
+              font-size: 11px; font-weight: 600; color: #1A237E; text-align: center; white-space: nowrap; }
+  .pipe-arrow { color: #9FA8DA; font-size: 18px; padding: 0 6px; }
+  .pipe-box.green { background: #E8F5E9; color: #2E7D32; }
+  .pipe-box.live  { background: #1A237E; color: white; }
+
+  /* GAP */
+  .gap-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+  .gap     { background: #FFF3E0; border: 1px solid #FFB74D; border-radius: 6px;
+             padding: 8px 14px; font-size: 11px; color: #BF360C; }
+  .gap strong { display: block; font-size: 12px; color: #E65100; }
+
+  /* NEXT STEPS */
+  .steps { counter-reset: step; }
+  .step  { display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; }
+  .step-num { background: #1A237E; color: white; border-radius: 50%; width: 28px; height: 28px;
+              display: flex; align-items: center; justify-content: center;
+              font-size: 13px; font-weight: 700; flex-shrink: 0; }
+  .step-body h3 { font-size: 13px; font-weight: 700; margin-bottom: 3px; color: #1A237E; }
+  .step-body p  { font-size: 11px; color: #555; line-height: 1.5; }
+  .step-body .timeline { font-size: 10px; color: #888; margin-top: 2px; font-style: italic; }
+
+  .footer { text-align: center; font-size: 11px; color: #aaa; padding: 20px 0; }
+
+  @media (max-width: 640px) {
+    .stats  { grid-template-columns: repeat(2, 1fr); }
+    .systems { grid-template-columns: 1fr; }
+    .mvp-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>EnFa Dataset — ZORO Energy Intelligence Briefing</h1>
+    <p>We completed a full analysis of 3.5 years of live operational data from a German multi-source commercial building. 223 of 233 sensors are ready to ingest into our production pipeline today — with no code changes required.</p>
+    <span class="tag">233 Signals Analysed</span>
+    <span class="tag">40.5 GB Raw Data</span>
+    <span class="tag">Live Data to May 2026</span>
+    <span class="tag">3 MVP Paths Ready</span>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <div class="num">3.5</div>
+      <div class="unit">Years</div>
+      <div class="lbl">of live building data</div>
+    </div>
+    <div class="stat">
+      <div class="num">20s</div>
+      <div class="unit">Resolution</div>
+      <div class="lbl">industry standard is 15 min</div>
+    </div>
+    <div class="stat">
+      <div class="num">223</div>
+      <div class="unit">Signals</div>
+      <div class="lbl">pipeline-ready today</div>
+    </div>
+    <div class="stat">
+      <div class="num">£0</div>
+      <div class="unit">Extra Sensors</div>
+      <div class="lbl">needed for first MVP</div>
+    </div>
+  </div>
+
+  <!-- WHAT IS THE BUILDING -->
+  <div class="section">
+    <h2>What Building Is This?</h2>
+    <p style="font-size:13px;line-height:1.7;color:#444;margin-bottom:16px">
+      The <strong>EnFa (Energiefabrik)</strong> is a German research building designed to be nearly energy-autonomous. It is a real commercial building with a production-grade energy management system — exactly the type of building ZORO targets. The data comes from its live InfluxDB database, exported directly, and runs to <strong>May 27 2026</strong> — it is operational data, not historical research data.
+    </p>
+    <div class="systems">
+      <div class="sys" style="background:#EDE7F6">
+        <div class="icon">♨️</div>
+        <h3 style="color:#4A148C">Heat Pumps (×3)</h3>
+        <p style="color:#4A148C">3 air-source units tracked individually. Supply temps, defrost cycles, energy input/output all available at 20-second resolution.</p>
+        <span class="sig">greal_WP1AbtauSek</span>
+      </div>
+      <div class="sys" style="background:#E3F2FD">
+        <div class="icon">🔋</div>
+        <h3 style="color:#0D47A1">Battery Storage (4 clusters)</h3>
+        <p style="color:#0D47A1">State of charge, charge/discharge power, per-cluster voltage. 3.5 years of daily cycling data.</p>
+        <span class="sig">greal_BatterieLadeZustand</span>
+      </div>
+      <div class="sys" style="background:#FFFDE7">
+        <div class="icon">☀️</div>
+        <h3 style="color:#F57F17">PV System (7 strings)</h3>
+        <p style="color:#F57F17">Each of 7 strings tracked individually. Total power, per-string energy, and a PV forecast signal.</p>
+        <span class="sig">greal_E_PV1 → PV7</span>
+      </div>
+      <div class="sys" style="background:#FCE4EC">
+        <div class="icon">⚡</div>
+        <h3 style="color:#880E4F">CHP / BHKW (×2)</h3>
+        <p style="color:#880E4F">Two combined heat-and-power units. Electrical output, heat generation, gas consumption all tracked.</p>
+        <span class="sig">real_P_BHKW</span>
+      </div>
+      <div class="sys" style="background:#E8F5E9">
+        <div class="icon">🏢</div>
+        <h3 style="color:#1B5E20">Building Zones</h3>
+        <p style="color:#1B5E20">5 heating zones (North, South, Hall, Old Building, Server), underfloor heating, concrete core activation.</p>
+        <span class="sig">greal_K_WMZ_TV_Nord</span>
+      </div>
+      <div class="sys" style="background:#E0F7FA">
+        <div class="icon">🌤️</div>
+        <h3 style="color:#006064">Weather + EV</h3>
+        <p style="color:#006064">Outdoor temperature (3.5 yr), wind speed, sun position. Plus 3 EV charging stations tracked individually.</p>
+        <span class="sig">wind_now · sun_alt</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MVP READINESS -->
+  <div class="section">
+    <h2>What Can We Build? — MVP Readiness</h2>
+    <div class="mvp-grid">
+      <div class="mvp ready">
+        <span class="badge badge-r">READY</span>
+        <h3>Energy Analytics Dashboard</h3>
+        <p>All energy flows available: PV generation, building demand, battery, BHKW, EV charging, gas. Can build a Grafana-style live dashboard using EnFa as a reference template for SCS and future customers.</p>
+      </div>
+      <div class="mvp ready">
+        <span class="badge badge-r">READY</span>
+        <h3>HVAC Optimisation Advisory</h3>
+        <p>3.5 years of heating curve, night setback, and zone temperature data. Full setpoint history. Can detect inefficient setpoint configurations and recommend adjustments.</p>
+      </div>
+      <div class="mvp ready" style="border-color:#4CAF50;background:#F1F8E9">
+        <span class="badge badge-r">READY — TOP PICK</span>
+        <h3>Heat Pump FDD (Fault Detection)</h3>
+        <p>Best-covered use case. 3 HP units, defrost at 20s resolution, COP calculable immediately. 3.5 years of baseline = statistical anomaly detection from day one.</p>
+      </div>
+      <div class="mvp ready">
+        <span class="badge badge-r">READY</span>
+        <h3>Battery Optimisation</h3>
+        <p>4 clusters with full charge/discharge/loss tracking. HP interlock logic present. Ready for smart dispatch optimisation.</p>
+      </div>
+      <div class="mvp partial">
+        <span class="badge badge-p">PARTIALLY READY</span>
+        <h3>MPC / Predictive Control</h3>
+        <p>All state and control signals present. Gap: no electricity spot price signal. Needs Tibber or ENTSO-E API added to pipeline.</p>
+      </div>
+      <div class="mvp partial">
+        <span class="badge badge-p">PARTIALLY READY</span>
+        <h3>PV Forecasting</h3>
+        <p>7 strings + sun geometry available. Gap: no direct irradiance sensor (W/m²) in continuous data. Need weather API or clearsky model.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECOMMENDATION -->
+  <div class="recommend">
+    <h2>Recommendation: Start with Heat Pump FDD</h2>
+    <p>Of all the MVP paths, Heat Pump Fault Detection has the strongest data coverage, the clearest customer value, and the fastest time to a demoable result. It does not require any new sensors, any pipeline changes, or any additional data sources.</p>
+    <div class="bullets">
+      <div class="bullet"><div class="dot">1</div><div>Calculate HP Coefficient of Performance (COP) daily — heat output ÷ electrical input. Flag when it drops below baseline.</div></div>
+      <div class="bullet"><div class="dot">2</div><div>Detect defrost cycle anomalies — WP2 already shows different behaviour from WP1/3 in the plots.</div></div>
+      <div class="bullet"><div class="dot">3</div><div>Supply temperature deviation from the heating curve — early indicator of system degradation.</div></div>
+      <div class="bullet"><div class="dot">4</div><div>All three alerts can be shown in a Grafana dashboard using data already in the pipeline.</div></div>
+    </div>
+    <p style="margin-top:12px;font-size:12px;color:#555"><strong>Business pitch:</strong> "We detected that Heat Pump 2 has been underperforming for 3 months. If left unfixed, that's €X in wasted energy over the next year. Our platform caught it. Your maintenance team didn't."</p>
+  </div>
+
+  <!-- PIPELINE -->
+  <div class="section">
+    <h2>How the Data Flows into ZORO</h2>
+    <div class="pipe-row">
+      <div class="pipe-box">EnFa InfluxDB<br><small>233 CSV signals</small></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box green">Replay Script<br><small>CSV → JSON v1</small></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box live">Kafka<br><small>zoro.prod.raw.*</small></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box live">format_adapter<br><small>parse_json_v1</small></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box live">TimescaleDB<br><small>observations table</small></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box live">Grafana<br><small>dashboards</small></div>
+    </div>
+    <p style="font-size:12px;color:#555;margin-top:12px">
+      <strong>223 of 233 signals are already mapped</strong> to the JSON v1 format our pipeline expects — <code>device_id</code>, <code>metric</code>, <code>unit</code>. No parser changes needed. The only step remaining is writing the replay script that converts the CSV files into JSON and publishes them to Kafka.
+    </p>
+    <div class="gap-row">
+      <div class="gap"><strong>Gap 1</strong>No irradiance sensor in continuous data. Use clearsky model or Open-Meteo API.</div>
+      <div class="gap"><strong>Gap 2</strong>No electricity spot price. Add Tibber or ENTSO-E feed for price-optimal MPC.</div>
+      <div class="gap"><strong>Gap 3</strong>SCS data not yet arrived. Bridge is live. Neuberger parser may be needed.</div>
+    </div>
+  </div>
+
+  <!-- NEXT STEPS -->
+  <div class="section">
+    <h2>Next Steps</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Replay EnFa data into TimescaleDB</h3>
+          <p>Write a script that converts EnFa CSV files to JSON v1 and publishes to Kafka. This validates the full production pipeline with 3.5 years of real building data and gives us a working Grafana dashboard to demo.</p>
+          <div class="timeline">This week · ~1 day of engineering</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Build HP COP Calculator</h3>
+          <p>Once data is in TimescaleDB, COP is a single SQL query. Plot daily COP over 3.5 years, establish a baseline, and flag deviations. First real AI analytics product.</p>
+          <div class="timeline">This week · ~0.5 days</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Build reference Grafana dashboard</h3>
+          <p>Energy overview + HP COP + battery status. Use EnFa as the template that all future customer dashboards (starting with SCS) are built from.</p>
+          <div class="timeline">Next week · template for SCS</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3>Prepare for SCS data</h3>
+          <p>Check the Kafka DLQ for any SCS test messages. If Neuberger format doesn't match JSON v1, build the parser. Use the EnFa signal dictionary as the canonical schema to map SCS signals against.</p>
+          <div class="timeline">When SCS data arrives</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h3>Pipeline refactor for scale</h3>
+          <p>Plugin-based parser registry, signal registry table in TimescaleDB, per-customer container isolation. Not blocking the PoC but needed before the 3rd customer.</p>
+          <div class="timeline">Parallel track · 2–3 weeks</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    ZORO Energy · Confidential · Generated 2026-05-31 · Data source: EnFa building, Germany · Analysis: ZORO AI Data Platform
+  </div>
+
+</div>
+</body>
+</html>

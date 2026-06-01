@@ -1,0 +1,53 @@
+# ============================================================
+# ZORO Energy — EnFa EDA Project .gitignore
+# ============================================================
+
+# ── Raw data (40.5 GB — never commit) ───────────────────────
+data/*.csv
+data/raw/
+data/processed/
+data/samples/
+data/external/
+
+# ── Python environment ───────────────────────────────────────
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+
+# ── Jupyter ──────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── Large derived files (regenerable) ────────────────────────
+inputs/thesis/thesis_full.txt
+
+# ── Thesis PDF (large binary — use Git LFS or store separately)
+# Uncomment the line below if you don't want the PDF in git.
+# If the PDF is <50 MB and you want it versioned, leave it commented.
+# *.pdf
+
+# ── OS / editor noise ────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Secrets (never commit) ───────────────────────────────────
+.env
+*.env
+secrets.yaml
+terraform.tfvars
+
+# ── Temp files ───────────────────────────────────────────────
+/tmp/
+*.tmp
+*.log

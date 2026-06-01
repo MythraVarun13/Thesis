@@ -1,0 +1,3 @@
+schema_type,count,example_files
+standard,233,A.csv|TimerRuecklaufAltbau.csv|V_realAZmax.csv|V_realAZmin.csv|V_realHysWP.csv
+non-standard,0,

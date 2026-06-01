@@ -1,0 +1,2 @@
+file_name,missing_values_count,missing_pct,gap_count,notes
+DEFERRED,,,,'Full missing-value scan requires reading all 40.5 GB. Deferred pending DuckDB integration or targeted per-signal scan. See context/data_quality_context.md for head-sample gap findings.'

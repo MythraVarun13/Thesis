@@ -1,0 +1,60 @@
+# ============================================================
+# ZORO Energy — EnFa EDA Project Configuration
+# Edit paths here; all scripts read from this file.
+# ============================================================
+
+project:
+  name: "EnFa EDA — ZORO Energy"
+  version: "1.0.0"
+
+paths:
+  # Root of the project (all other paths are relative to this)
+  project_root: "C:/Users/dellg/OneDrive/Documents/ZE"
+
+  # Raw data — READ ONLY, never modify
+  raw_data: "data"
+
+  # Analysis outputs
+  reports:    "reports"
+  plots:      "reports/plots"
+  samples:    "reports/sample_rows"
+  context:    "context"
+  notebooks:  "notebooks"
+  scripts:    "scripts"
+
+  # Processed outputs (safe to write)
+  processed:  "data/processed"
+  data_samples: "data/samples"
+
+sampling:
+  # Max rows to read for head-based sampling (schema, profiling)
+  head_rows: 30
+  head_bytes: 6144        # 6 KB per file for schema detection
+  tail_bytes: 4096        # 4 KB from end for last timestamp
+  sample_rows: 20         # rows saved per signal in sample_rows/
+  plot_max_rows: 5000     # max rows loaded for plotting
+
+data:
+  delimiter: ";"
+  encoding: "utf-8"
+  timestamp_col: "_time"
+  value_col: "_value"
+  field_col: "_field"
+  measurement_col: "_measurement"
+  timestamp_tz: "UTC"     # all timestamps are UTC (Z suffix)
+  local_tz: "Europe/Berlin"  # convert for scheduling analysis
+
+pipeline:
+  # ZORO production pipeline JSON v1 format
+  required_fields: ["timestamp", "device_id", "metric", "value", "unit"]
+  building_id_prefix: "de-enfa-main-01"  # update when confirmed from thesis
+
+exclude_signals:
+  # Confirmed test/commissioning artifacts — exclude from all analysis
+  - "A"
+  - "_value"
+  - "pilot"
+  - "val1006"
+  - "val1007"
+  - "val1008"
+  - "val1009"

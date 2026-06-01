@@ -1,0 +1,2 @@
+file_name,duplicate_count,first_duplicate_ts,notes
+DEFERRED,,,,'Full duplicate-timestamp scan deferred — requires complete file reads across 40.5 GB. Recommend DuckDB query on parquet-converted subset.'
