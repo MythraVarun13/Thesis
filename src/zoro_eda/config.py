@@ -1,13 +1,18 @@
 """
 zoro_eda.config
 ===============
-Load project configuration from config.yaml.
+Load project configuration with a three-layer merge.
+
+Priority order (highest wins):
+  1. config_local.yaml  — machine-specific overrides, gitignored
+  2. config.yaml        — shared project defaults, committed to git
+  3. Built-in defaults  — hardcoded fallback, no files required
 
 Usage
 -----
     from zoro_eda.config import load_config
 
-    cfg = load_config()              # reads config.yaml in project root
+    cfg = load_config()              # auto-discovers config.yaml
     cfg = load_config("/path/to/config.yaml")
 """
 
@@ -19,11 +24,11 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# Default values used when config.yaml is absent or a key is missing.
-# Mirrors the structure in config.yaml so scripts work without PyYAML.
+# ---------------------------------------------------------------------------
+# Built-in defaults — scripts work even without config.yaml or PyYAML
+# ---------------------------------------------------------------------------
 _DEFAULTS: dict[str, Any] = {
     "paths": {
-        "project_root": str(Path(__file__).resolve().parents[2]),
         "raw_data":     "data",
         "reports":      "reports",
         "plots":        "reports/plots",
@@ -35,10 +40,10 @@ _DEFAULTS: dict[str, Any] = {
         "data_samples": "data/samples",
     },
     "sampling": {
-        "head_rows":    30,
-        "head_bytes":   6144,
-        "tail_bytes":   4096,
-        "sample_rows":  20,
+        "head_rows":     30,
+        "head_bytes":    6144,
+        "tail_bytes":    4096,
+        "sample_rows":   20,
         "plot_max_rows": 5000,
     },
     "data": {
@@ -61,24 +66,70 @@ _DEFAULTS: dict[str, Any] = {
 }
 
 
+# ---------------------------------------------------------------------------
+# File finders
+# ---------------------------------------------------------------------------
+
 def _find_config_yaml(start: Path | None = None) -> Path | None:
-    """Walk up from `start` (default: this file's location) to find config.yaml."""
+    """Walk up from start to find config.yaml. Stops at .git boundary."""
     root = start or Path(__file__).resolve().parent
     for candidate in [root, *root.parents]:
         cfg = candidate / "config.yaml"
         if cfg.exists():
             return cfg
         if (candidate / ".git").exists():
-            break  # stop at repo root
+            break
     return None
 
 
-def load_config(config_path: str | Path | None = None) -> dict[str, Any]:
-    """
-    Load config.yaml and return merged configuration dict.
+def _find_config_local(base_config: Path) -> Path | None:
+    """Return config_local.yaml next to base_config if it exists."""
+    local = base_config.parent / "config_local.yaml"
+    return local if local.exists() else None
 
-    Falls back to built-in defaults if PyYAML is not installed or the file
-    is not found — so scripts always have sensible values.
+
+# ---------------------------------------------------------------------------
+# YAML loader (graceful when PyYAML is absent)
+# ---------------------------------------------------------------------------
+
+def _load_yaml(path: Path) -> dict[str, Any]:
+    """Load a YAML file. Returns {} if PyYAML is missing or file is invalid."""
+    try:
+        import yaml  # type: ignore[import]
+        with open(path, encoding="utf-8") as fh:
+            result = yaml.safe_load(fh)
+        return result if isinstance(result, dict) else {}
+    except ImportError:
+        logger.debug("PyYAML not installed — cannot load %s", path)
+    except Exception as exc:
+        logger.warning("Failed to parse %s: %s", path, exc)
+    return {}
+
+
+# ---------------------------------------------------------------------------
+# Merge helper
+# ---------------------------------------------------------------------------
+
+def _merge(base: dict, overrides: dict) -> None:
+    """Shallow-merge overrides into base, section by section."""
+    for key, value in overrides.items():
+        if isinstance(value, dict) and isinstance(base.get(key), dict):
+            base[key].update(value)
+        else:
+            base[key] = value
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+def load_config(config_path: str | Path | None = None) -> dict[str, Any]:
+    """Load configuration and return the merged dict.
+
+    Load order (highest priority wins):
+      1. ``config_local.yaml`` next to config.yaml (gitignored, machine-specific)
+      2. ``config.yaml`` (committed to git, shared defaults)
+      3. Built-in defaults (always available, no files required)
 
     Parameters
     ----------
@@ -89,6 +140,7 @@ def load_config(config_path: str | Path | None = None) -> dict[str, Any]:
     import copy
     cfg = copy.deepcopy(_DEFAULTS)
 
+    # Locate config.yaml
     if config_path is not None:
         yaml_path = Path(config_path)
     else:
@@ -98,20 +150,18 @@ def load_config(config_path: str | Path | None = None) -> dict[str, Any]:
         logger.debug("config.yaml not found — using built-in defaults")
         return cfg
 
-    try:
-        import yaml  # type: ignore[import]
-        with open(yaml_path, encoding="utf-8") as fh:
-            user_cfg = yaml.safe_load(fh) or {}
-        # Shallow merge per top-level section
-        for section, values in user_cfg.items():
-            if isinstance(values, dict) and section in cfg:
-                cfg[section].update(values)
-            else:
-                cfg[section] = values
-        logger.debug("Loaded config from %s", yaml_path)
-    except ImportError:
-        logger.debug("PyYAML not installed — using built-in defaults")
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("Failed to parse %s: %s — using defaults", yaml_path, exc)
+    # Layer 1: config.yaml
+    base_overrides = _load_yaml(yaml_path)
+    if base_overrides:
+        _merge(cfg, base_overrides)
+        logger.debug("Loaded config.yaml from %s", yaml_path)
+
+    # Layer 2: config_local.yaml (machine-specific, gitignored)
+    local_path = _find_config_local(yaml_path)
+    if local_path:
+        local_overrides = _load_yaml(local_path)
+        if local_overrides:
+            _merge(cfg, local_overrides)
+            logger.debug("Loaded config_local.yaml from %s", local_path)
 
     return cfg

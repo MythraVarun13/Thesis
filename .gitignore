@@ -51,3 +51,6 @@ terraform.tfvars
 /tmp/
 *.tmp
 *.log
+
+# Local machine config (never commit)
+config_local.yaml

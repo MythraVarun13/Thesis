@@ -1,0 +1,22 @@
+# config_local.yaml.example
+# =========================
+# Copy this file to config_local.yaml and fill in your local paths.
+# config_local.yaml is gitignored — never commit it.
+#
+# config_local.yaml is loaded FIRST. Any key here overrides config.yaml.
+# You only need to set the keys that differ from the defaults.
+#
+# Minimum required: set project_root to wherever you cloned this repo.
+
+paths:
+  # Absolute path to the project root (the folder containing this file).
+  # Use forward slashes on all platforms — Python handles them on Windows too.
+  #
+  # Examples:
+  #   Mac/Linux : /Users/yourname/projects/ZE
+  #   Windows   : C:/Users/yourname/OneDrive/Documents/ZE
+  project_root: "/path/to/your/ZE"
+
+  # raw_data is relative to project_root.
+  # Only change this if your data folder has a non-standard name.
+  # raw_data: "data"

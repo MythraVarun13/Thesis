@@ -1,6 +1,9 @@
 # ============================================================
 # ZORO Energy — EnFa EDA Project Configuration
-# Edit paths here; all scripts read from this file.
+# Committed to git — no machine-specific paths here.
+#
+# Machine-specific overrides go in config_local.yaml
+# (copy config_local.yaml.example and fill it in).
 # ============================================================
 
 project:
@@ -8,49 +11,46 @@ project:
   version: "1.0.0"
 
 paths:
-  # Root of the project (all other paths are relative to this)
-  project_root: "C:/Users/dellg/OneDrive/Documents/ZE"
+  # project_root is intentionally NOT set here — it is machine-specific.
+  # Set it in config_local.yaml, or leave it out to use auto-detection.
+  # Scripts find the project root from their own file location automatically.
 
-  # Raw data — READ ONLY, never modify
+  # Raw data directory — relative to project_root, READ ONLY
   raw_data: "data"
 
-  # Analysis outputs
-  reports:    "reports"
-  plots:      "reports/plots"
-  samples:    "reports/sample_rows"
-  context:    "context"
-  notebooks:  "notebooks"
-  scripts:    "scripts"
-
-  # Processed outputs (safe to write)
-  processed:  "data/processed"
+  # Output directories — relative to project_root
+  reports:      "reports"
+  plots:        "reports/plots"
+  samples:      "reports/sample_rows"
+  context:      "context"
+  notebooks:    "notebooks"
+  scripts:      "scripts"
+  processed:    "data/processed"
   data_samples: "data/samples"
 
 sampling:
-  # Max rows to read for head-based sampling (schema, profiling)
-  head_rows: 30
-  head_bytes: 6144        # 6 KB per file for schema detection
-  tail_bytes: 4096        # 4 KB from end for last timestamp
-  sample_rows: 20         # rows saved per signal in sample_rows/
-  plot_max_rows: 5000     # max rows loaded for plotting
+  head_rows:     30      # rows to read from file head for interval detection
+  head_bytes:    6144    # bytes to read for schema detection (6 KB)
+  tail_bytes:    4096    # bytes to read from file end for last timestamp (4 KB)
+  sample_rows:   20      # rows saved per signal in sample_rows/
+  plot_max_rows: 5000    # max rows loaded per signal for plotting
 
 data:
-  delimiter: ";"
-  encoding: "utf-8"
-  timestamp_col: "_time"
-  value_col: "_value"
-  field_col: "_field"
+  delimiter:       ";"
+  encoding:        "utf-8"
+  timestamp_col:   "_time"
+  value_col:       "_value"
+  field_col:       "_field"
   measurement_col: "_measurement"
-  timestamp_tz: "UTC"     # all timestamps are UTC (Z suffix)
-  local_tz: "Europe/Berlin"  # convert for scheduling analysis
+  timestamp_tz:    "UTC"            # all timestamps use UTC (Z suffix)
+  local_tz:        "Europe/Berlin"  # convert to this for scheduling analysis
 
 pipeline:
-  # ZORO production pipeline JSON v1 format
-  required_fields: ["timestamp", "device_id", "metric", "value", "unit"]
-  building_id_prefix: "de-enfa-main-01"  # update when confirmed from thesis
+  required_fields:    ["timestamp", "device_id", "metric", "value", "unit"]
+  building_id_prefix: "de-enfa-main-01"  # confirm from thesis
 
 exclude_signals:
-  # Confirmed test/commissioning artifacts — exclude from all analysis
+  # Confirmed commissioning test artifacts - exclude from all analysis
   - "A"
   - "_value"
   - "pilot"

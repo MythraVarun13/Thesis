@@ -7,6 +7,32 @@ are feasible and how to ingest the data into the production pipeline.
 
 ---
 
+## Getting the Raw Data
+
+The 233 CSV signal files (~40.5 GB) are **not in git** — they are too large and contain operational data.
+
+Download them from Google Drive:
+
+**[EnFa Raw Data — Google Drive](https://drive.google.com/drive/folders/1eQhHjXlCtKwyOO67YyAFa9ZlAwIEV6qF)**
+
+1. Download `data_2026_05_26.zip`
+2. Extract the zip — it contains a `data/` folder
+3. Move the contents of that `data/` folder into `<project_root>/data/`
+
+The final structure should look like:
+```
+ZE/
+└── data/
+    ├── greal_BatterieLadeZustand.csv
+    ├── real_BatterieLeistung.csv
+    ├── real_PV_Gesamt.csv
+    └── ... (233 files total)
+```
+
+> **Note:** Keep the `data/` folder as-is. Never rename or modify the raw CSV files — they are the source of truth.
+
+---
+
 ## Prerequisites
 
 | Tool | Minimum version | Notes |
@@ -88,30 +114,40 @@ jupyter notebook notebooks/
 
 ## Configuration
 
-All paths and settings live in `config.yaml` at the project root.
-**You should not need to edit this for a standard setup** — scripts
-auto-detect the project root by looking for `config.yaml` walking up from
-their own directory.
+Two config files exist — only one is yours to edit:
 
-If your raw data is in a non-standard location, either:
+| File | Purpose | In git? |
+|------|---------|---------|
+| `config.yaml` | Shared project settings (delimiter, sampling params, etc.) | Yes — do not add personal paths |
+| `config_local.yaml` | Your machine-specific overrides | No — gitignored |
 
-**Option A — edit `config.yaml`:**
-```yaml
-paths:
-  project_root: "/your/path/to/ZE"   # absolute path, forward slashes work on all platforms
-  raw_data: "data"                    # relative to project_root
+**First-time setup:** copy the example and fill in your path:
+
+```bash
+cp config_local.yaml.example config_local.yaml
 ```
 
-**Option B — use CLI flags (any platform):**
+Then edit `config_local.yaml`:
+```yaml
+paths:
+  # Use forward slashes on all platforms
+  project_root: "/your/path/to/ZE"        # Mac/Linux
+  # project_root: "C:/Users/you/ZE"       # Windows
+```
+
+Scripts auto-detect the project root from their own file location, so
+`config_local.yaml` is only strictly needed if auto-detection fails (e.g.
+you run scripts from an unrelated working directory).
+
+**Alternative — CLI flags (no config file needed):**
 ```bash
 python scripts/01_scan_files.py --raw-dir /your/path/to/ZE/data
 ```
 
-**Option C — environment variable:**
+**Alternative — environment variable:**
 ```bash
 export ZORO_PROJECT_ROOT=/your/path/to/ZE   # Mac/Linux
-set ZORO_PROJECT_ROOT=C:\your\path\to\ZE    # Windows CMD
-$env:ZORO_PROJECT_ROOT="C:\your\path\to\ZE" # Windows PowerShell
+$env:ZORO_PROJECT_ROOT="C:/your/path/to/ZE" # Windows PowerShell
 ```
 
 ---
