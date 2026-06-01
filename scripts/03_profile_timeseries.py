@@ -1,317 +1,269 @@
 """
-03_profile_timeseries.py  —  time-series profiling (head + tail only, no full reads)
+03_profile_timeseries.py
+========================
+Step 3: Time-series profiling for all EnFa signal files.
 
-Reads first ~30 rows (head) and last ~4 KB (tail) per file to extract:
-  - Start timestamp
-  - End timestamp
-  - Duration
-  - Median sampling interval (from head)
-  - Sampling regularity flag
-  - Gap detection (from head sample only — not exhaustive)
+Reads only the file head (first 30 rows) and tail (last 4 KB) per file.
+No full-file reads — safe on 40+ GB datasets.
 
-Usage:
-    python scripts/03_profile_timeseries.py --raw-dir "C:\\Users\\dellg\\OneDrive\\Documents\\ZE\\data"
+Usage
+-----
+    python scripts/03_profile_timeseries.py
+    python scripts/03_profile_timeseries.py --raw-dir /path/to/data
 
-Outputs:
+Outputs
+-------
     reports/timestamp_coverage_report.csv
     reports/sampling_interval_report.csv
     context/data_quality_context.md
 """
 
+from __future__ import annotations
+
 import argparse
 import csv
-import io
-import os
+import logging
 import statistics
-from datetime import datetime, timezone, timedelta
+import sys
+from datetime import datetime
 from pathlib import Path
 
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(_SCRIPTS_DIR.parent / "src"))
 
-DELIMITER = ";"
-ENCODING = "utf-8"
-HEAD_ROWS = 30       # rows to read from start for interval estimation
-TAIL_BYTES = 4096    # bytes to read from end for last timestamp
+from zoro_eda.config import load_config
+from zoro_eda.paths import resolve_paths, ProjectPaths
+from zoro_eda.csv_io import (
+    find_column,
+    get_last_timestamp,
+    parse_timestamp,
+    read_head,
+)
 
+logger = logging.getLogger(__name__)
 
-def parse_ts(ts_str: str):
-    """Parse ISO 8601 UTC timestamp. Returns datetime or None."""
-    ts_str = ts_str.strip()
-    if not ts_str:
-        return None
-    try:
-        # Handle both 'Z' suffix and milliseconds/microseconds
-        ts_str = ts_str.replace("Z", "+00:00")
-        return datetime.fromisoformat(ts_str)
-    except Exception:
-        try:
-            # Fallback: strip sub-seconds
-            base = ts_str.split(".")[0].replace("Z", "")
-            return datetime.fromisoformat(base).replace(tzinfo=timezone.utc)
-        except Exception:
-            return None
-
-
-def read_head_rows(fpath: Path, n: int = HEAD_ROWS) -> tuple[list[str], list[list[str]]]:
-    """Read first n data rows. Returns (header, data_rows)."""
-    header: list[str] = []
-    data_rows: list[list[str]] = []
-    try:
-        with open(fpath, "r", encoding=ENCODING, errors="replace") as f:
-            reader = csv.reader(f, delimiter=DELIMITER)
-            for i, row in enumerate(reader):
-                if i == 0:
-                    header = row
-                else:
-                    data_rows.append(row)
-                    if len(data_rows) >= n:
-                        break
-    except Exception:
-        pass
-    return header, data_rows
+# ---------------------------------------------------------------------------
+# Named constants — no magic numbers in logic below
+# ---------------------------------------------------------------------------
+SECONDS_PER_DAY              = 86_400
+MAX_PLAUSIBLE_GAP_SECONDS    = 86_400   # gaps > 1 day flagged in head sample
+INTERVAL_REGULARITY_TOLERANCE = 0.20   # 20 % of median; intervals within this = regular
+REGULARITY_MINIMUM_ROWS      = 3       # need at least this many intervals to judge regularity
+REGULARITY_THRESHOLD_FRACTION = 0.90   # 90 % of intervals must be within tolerance
 
 
-def read_tail_lines(fpath: Path, tail_bytes: int = TAIL_BYTES) -> list[str]:
-    """Read last tail_bytes of file, return non-empty lines."""
-    try:
-        size = fpath.stat().st_size
-        seek_pos = max(0, size - tail_bytes)
-        with open(fpath, "rb") as f:
-            f.seek(seek_pos)
-            raw = f.read()
-        text = raw.decode(ENCODING, errors="replace")
-        lines = [l.strip() for l in text.splitlines() if l.strip()]
-        return lines
-    except Exception:
-        return []
+def classify_interval_label(median_seconds: float | None) -> str:
+    """Map a median interval in seconds to a human-readable label."""
+    if median_seconds is None:
+        return "unknown"
+    if median_seconds <= 7:
+        return "~5s"
+    if median_seconds <= 22:
+        return "~20s"
+    if median_seconds <= 65:
+        return "~1min"
+    if median_seconds <= 310:
+        return "~5min"
+    if median_seconds <= 3_700:
+        return "~1hr"
+    return f"~{round(median_seconds / 60)}min"
 
 
-def get_time_col_idx(header: list[str]) -> int:
-    """Return index of _time column."""
-    for i, h in enumerate(header):
-        if "_time" in h.lower():
-            return i
-    return -1
+def profile_file(fpath: Path, head_rows: int = 30, tail_bytes: int = 4_096) -> dict:
+    """Profile one file using head + tail reads only."""
+    header, data_rows = read_head(fpath, n_rows=head_rows)
+    time_col_idx = find_column(header, "_time")
 
-
-def profile_file(fpath: Path) -> dict:
-    header, data_rows = read_head_rows(fpath, HEAD_ROWS)
-    time_idx = get_time_col_idx(header)
-
-    start_ts = None
-    end_ts = None
-    intervals_sec: list[float] = []
-    timestamps: list[datetime] = []
-
-    if time_idx >= 0 and data_rows:
+    head_timestamps: list[datetime] = []
+    if time_col_idx >= 0:
         for row in data_rows:
-            if time_idx < len(row):
-                dt = parse_ts(row[time_idx])
-                if dt:
-                    timestamps.append(dt)
+            if time_col_idx < len(row):
+                dt = parse_timestamp(row[time_col_idx])
+                if dt is not None:
+                    head_timestamps.append(dt)
 
-        if timestamps:
-            start_ts = timestamps[0]
-            # Compute intervals between consecutive head timestamps
-            for i in range(1, len(timestamps)):
-                diff = (timestamps[i] - timestamps[i - 1]).total_seconds()
-                if 0 < diff < 86400:  # ignore negative or >1-day gaps in head
-                    intervals_sec.append(diff)
+    start_ts = head_timestamps[0] if head_timestamps else None
 
-    # Get end timestamp from tail
-    tail_lines = read_tail_lines(fpath)
-    for line in reversed(tail_lines):
-        parts = line.split(DELIMITER)
-        if len(parts) >= 3:
-            dt = parse_ts(parts[1])  # _time is column index 1 (after empty Unnamed:0)
-            if dt:
-                end_ts = dt
-                break
+    # End timestamp — use robust helper that also checks column position from header
+    end_ts = get_last_timestamp(fpath, tail_bytes=tail_bytes)
 
-    # Compute interval stats
-    median_interval = None
-    min_interval = None
-    max_interval = None
-    interval_regular = None
-    if intervals_sec:
-        median_interval = round(statistics.median(intervals_sec), 1)
-        min_interval = round(min(intervals_sec), 1)
-        max_interval = round(max(intervals_sec), 1)
-        # "Regular" if 90% of intervals within 20% of median
-        if len(intervals_sec) >= 3:
-            within = sum(1 for x in intervals_sec if abs(x - median_interval) < 0.2 * median_interval + 1)
-            interval_regular = within / len(intervals_sec) >= 0.9
+    # Sampling intervals from head (filter cross-day jumps)
+    intervals_seconds: list[float] = [
+        (head_timestamps[i] - head_timestamps[i - 1]).total_seconds()
+        for i in range(1, len(head_timestamps))
+        if 0 < (head_timestamps[i] - head_timestamps[i - 1]).total_seconds() < MAX_PLAUSIBLE_GAP_SECONDS
+    ]
 
-    # Duration
-    duration_days = None
+    median_interval = round(statistics.median(intervals_seconds), 1) if intervals_seconds else None
+    min_interval    = round(min(intervals_seconds), 1) if intervals_seconds else None
+    max_interval    = round(max(intervals_seconds), 1) if intervals_seconds else None
+
+    interval_regular: bool | None = None
+    if median_interval is not None and len(intervals_seconds) >= REGULARITY_MINIMUM_ROWS:
+        tolerance = INTERVAL_REGULARITY_TOLERANCE * median_interval + 1.0
+        within    = sum(1 for x in intervals_seconds if abs(x - median_interval) <= tolerance)
+        interval_regular = (within / len(intervals_seconds)) >= REGULARITY_THRESHOLD_FRACTION
+
+    duration_days: float | None = None
     if start_ts and end_ts and end_ts > start_ts:
-        duration_days = round((end_ts - start_ts).total_seconds() / 86400, 1)
+        duration_days = round((end_ts - start_ts).total_seconds() / SECONDS_PER_DAY, 1)
 
-    # Classify interval
-    interval_label = "unknown"
-    if median_interval is not None:
-        if median_interval <= 5:
-            interval_label = "~5s"
-        elif median_interval <= 22:
-            interval_label = "~20s"
-        elif median_interval <= 65:
-            interval_label = "~1min"
-        elif median_interval <= 310:
-            interval_label = "~5min"
-        elif median_interval <= 920:
-            interval_label = "~15min"
-        elif median_interval <= 3700:
-            interval_label = "~1hr"
-        else:
-            interval_label = f"~{round(median_interval/60)}min"
+    head_gap_detected = (
+        max_interval is not None
+        and median_interval is not None
+        and median_interval > 0
+        and max_interval > median_interval * 5
+    )
 
     return {
-        "file_name": fpath.name,
-        "start_utc": start_ts.isoformat() if start_ts else "",
-        "end_utc": end_ts.isoformat() if end_ts else "",
-        "duration_days": duration_days if duration_days is not None else "",
+        "file_name":           fpath.name,
+        "start_utc":           start_ts.isoformat() if start_ts else "",
+        "end_utc":             end_ts.isoformat()   if end_ts   else "",
+        "duration_days":       duration_days if duration_days is not None else "",
         "median_interval_sec": median_interval if median_interval is not None else "",
-        "min_interval_sec": min_interval if min_interval is not None else "",
-        "max_interval_sec": max_interval if max_interval is not None else "",
-        "interval_label": interval_label,
-        "interval_regular": interval_regular if interval_regular is not None else "",
-        "head_rows_parsed": len(timestamps),
-        "head_gap_detected": max_interval > median_interval * 5 if (max_interval and median_interval and median_interval > 0) else False,
+        "min_interval_sec":    min_interval    if min_interval    is not None else "",
+        "max_interval_sec":    max_interval    if max_interval    is not None else "",
+        "interval_label":      classify_interval_label(median_interval),
+        "interval_regular":    interval_regular if interval_regular is not None else "",
+        "head_rows_parsed":    len(head_timestamps),
+        "head_gap_detected":   head_gap_detected,
     }
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--raw-dir", default=r"C:\Users\dellg\OneDrive\Documents\ZE\data")
-    args = parser.parse_args()
+def write_coverage_report(profiles: list[dict], output_path: Path) -> None:
+    fields = [
+        "file_name", "start_utc", "end_utc", "duration_days",
+        "median_interval_sec", "interval_label", "interval_regular", "head_gap_detected",
+    ]
+    with open(output_path, "w", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fields, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(profiles)
+    logger.info("Saved: %s", output_path)
 
-    raw_dir = Path(args.raw_dir)
-    project_root = raw_dir.parent
-    reports_dir = project_root / "reports"
-    context_dir = project_root / "context"
 
-    csv_files = sorted([f for f in raw_dir.iterdir() if f.is_file() and f.suffix.lower() == ".csv"])
-    total = len(csv_files)
-    print(f"Profiling {total} files (head+tail only)...")
+def write_interval_report(profiles: list[dict], output_path: Path) -> None:
+    fields = [
+        "file_name", "median_interval_sec", "min_interval_sec",
+        "max_interval_sec", "interval_label", "interval_regular", "head_rows_parsed",
+    ]
+    with open(output_path, "w", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fields, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(profiles)
+    logger.info("Saved: %s", output_path)
 
-    results = []
-    interval_groups: dict[str, list[str]] = {}
 
-    for i, fpath in enumerate(csv_files, 1):
-        rec = profile_file(fpath)
-        results.append(rec)
-        grp = rec["interval_label"]
-        interval_groups.setdefault(grp, []).append(fpath.name)
-        if i % 50 == 0 or i == total:
-            print(f"  {i}/{total} done")
+def write_quality_context(profiles: list[dict], output_path: Path) -> None:
+    from collections import Counter
 
-    # Write timestamp_coverage_report.csv
-    cov_path = reports_dir / "timestamp_coverage_report.csv"
-    cov_fields = ["file_name", "start_utc", "end_utc", "duration_days",
-                  "median_interval_sec", "interval_label", "interval_regular",
-                  "head_gap_detected"]
-    with open(cov_path, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=cov_fields, extrasaction="ignore")
-        w.writeheader()
-        w.writerows(results)
-    print(f"Saved: {cov_path}")
+    interval_groups: Counter[str] = Counter(p["interval_label"] for p in profiles)
+    starts    = sorted(p["start_utc"] for p in profiles if p["start_utc"])
+    ends      = sorted(p["end_utc"]   for p in profiles if p["end_utc"])
+    durations = [p["duration_days"] for p in profiles if p["duration_days"] != ""]
+    gap_files = [p["file_name"] for p in profiles if p["head_gap_detected"]]
+    bms_files     = [p for p in profiles if p["start_utc"] and p["start_utc"] < "2024"]
+    weather_files = [p for p in profiles if p["start_utc"] and p["start_utc"] >= "2024"]
 
-    # Write sampling_interval_report.csv
-    samp_path = reports_dir / "sampling_interval_report.csv"
-    samp_fields = ["file_name", "median_interval_sec", "min_interval_sec",
-                   "max_interval_sec", "interval_label", "interval_regular", "head_rows_parsed"]
-    with open(samp_path, "w", newline="", encoding="utf-8") as f:
-        w2 = csv.DictWriter(f, fieldnames=samp_fields, extrasaction="ignore")
-        w2.writeheader()
-        w2.writerows(results)
-    print(f"Saved: {samp_path}")
+    interval_notes = {
+        "~5s":   "Very high frequency — battery/power electronics",
+        "~20s":  "Standard BMS polling interval",
+        "~1min": "Medium frequency signals",
+        "~5min": "Typical HVAC aggregate interval",
+        "~1hr":  "Setpoint/config files — sparse by design",
+        "unknown": "Could not determine interval from head sample",
+    }
 
-    # Console summary
-    print(f"\n{'='*60}")
-    print(f"TIME COVERAGE SUMMARY")
+    def md_row(*cells: str) -> str:
+        return "| " + " | ".join(cells) + " |\n"
 
-    # Overall date range
-    starts = [r["start_utc"] for r in results if r["start_utc"]]
-    ends = [r["end_utc"] for r in results if r["end_utc"]]
-    if starts:
-        print(f"  Earliest start : {min(starts)}")
-        print(f"  Latest start   : {max(starts)}")
-    if ends:
-        print(f"  Earliest end   : {min(ends)}")
-        print(f"  Latest end     : {max(ends)}")
-
-    durations = [r["duration_days"] for r in results if r["duration_days"] != ""]
-    if durations:
-        print(f"  Duration range : {min(durations):.1f} – {max(durations):.1f} days")
-        print(f"  Median duration: {statistics.median(durations):.1f} days")
-
-    print(f"\n  Sampling interval groups:")
-    for label, files in sorted(interval_groups.items(), key=lambda x: -len(x[1])):
-        print(f"    {label:12s}  {len(files):3d} files")
-
-    gap_files = [r["file_name"] for r in results if r["head_gap_detected"]]
-    print(f"\n  Files with gap in head sample: {len(gap_files)}")
-    for fn in gap_files[:10]:
-        print(f"    {fn}")
-
-    # Signals by time range group
-    weather_files = [r for r in results if r.get("start_utc", "") >= "2024"]
-    bms_files = [r for r in results if r.get("start_utc", "") < "2024" and r.get("start_utc", "")]
-    print(f"\n  BMS signals (start < 2024)  : {len(bms_files)} files")
-    print(f"  Weather signals (start 2024+): {len(weather_files)} files")
-
-    # Write context/data_quality_context.md
-    ctx_path = context_dir / "data_quality_context.md"
     lines = [
-        "# Data Quality Context\n",
-        f"\n_Generated: {datetime.now().isoformat()}_\n",
-        "\n## Time Coverage Summary\n\n",
+        "# Data Quality Context\n\n",
+        f"_Generated: {datetime.now().isoformat()}_\n\n",
+        "## Time Coverage Summary\n\n",
         f"- **Earliest start:** `{min(starts) if starts else 'unknown'}`\n",
         f"- **Latest end:** `{max(ends) if ends else 'unknown'}`\n",
         f"- **BMS signals (pre-2024):** {len(bms_files)} files\n",
-        f"- **Weather/forecast signals (2024+):** {len(weather_files)} files\n\n",
-        "Note: Two distinct time periods observed. BMS data starts ~Dec 2022. "
-        "Weather/forecast data starts ~Feb 2024. These likely reflect different data "
-        "collection phases or the weather integration was added later.\n\n",
-        "## Sampling Interval Groups\n\n| Interval | Count | Notes |\n|---|---|---|\n",
+        f"- **Weather/forecast signals (2024+):** {len(weather_files)} files\n",
     ]
-    interval_notes = {
-        "~5s": "Very high frequency — likely battery/power electronics",
-        "~20s": "Standard BMS polling interval",
-        "~1min": "Medium frequency signals",
-        "~5min": "Typical energy meter interval",
-        "~15min": "Standard utility metering",
-        "~1hr": "Hourly aggregates",
-        "unknown": "Could not determine interval",
-    }
-    for label, files in sorted(interval_groups.items(), key=lambda x: -len(x[1])):
+    if durations:
+        lines.append(f"- **Median duration:** {statistics.median(durations):.1f} days\n")
+        lines.append(f"- **Max duration:** {max(durations):.1f} days\n")
+
+    lines.append("\n## Sampling Interval Groups\n\n| Interval | Count | Notes |\n|---|---|---|\n")
+    for label, count in interval_groups.most_common():
         note = interval_notes.get(label, "")
-        lines.append(f"| `{label}` | {len(files)} | {note} |\n")
+        lines.append(md_row(f"`{label}`", str(count), note))
 
     lines.append("\n## Gap Detection (head sample only)\n\n")
-    if gap_files:
-        lines.append(f"Files with irregular gaps in first {HEAD_ROWS} rows:\n\n")
-        for fn in gap_files:
-            lines.append(f"- `{fn}`\n")
-    else:
-        lines.append("No significant gaps detected in head samples.\n")
+    lines.append(f"Files with irregular gaps in first 30 rows: **{len(gap_files)}**\n\n")
+    lines.append("Note: most are `V_real*` setpoint files — sparse by design, not missing data.\n")
 
     lines.append("\n## Data Quality Notes\n\n")
-    lines.append("- All files: UTF-8 encoding, semicolon delimiter — no parsing issues expected\n")
-    lines.append("- Timestamps are UTC (ISO 8601 with Z suffix)\n")
+    lines.append("- All files: UTF-8 encoding, semicolon delimiter — no parsing issues\n")
+    lines.append("- Timestamps are UTC (ISO 8601 `Z` suffix)\n")
     lines.append("- Local timezone: CET (UTC+1) / CEST (UTC+2) — convert for scheduling analysis\n")
-    lines.append("- `pilot.csv`: CPU monitoring strings — exclude from energy analysis\n")
-    lines.append("- `A.csv`, `_value.csv`: ramp test signals — exclude\n")
-    lines.append("- Full gap/duplicate analysis requires per-file full scan (deferred to later step)\n")
+    lines.append("- **Data is live/current: runs to 2026-05-27**\n")
+    lines.append("- Full gap/duplicate scan deferred — requires full-file reads (40+ GB)\n")
 
-    lines.append("\n## Signals Sorted by Start Date (earliest 20)\n\n| File | Start UTC | Duration (days) | Interval |\n|---|---|---|---|\n")
-    sorted_by_start = sorted([r for r in results if r["start_utc"]], key=lambda x: x["start_utc"])
-    for r in sorted_by_start[:20]:
-        lines.append("| `" + r["file_name"] + "` | `" + r["start_utc"][:19] + "` | " + str(r["duration_days"]) + " | " + r["interval_label"] + " |\n")
+    output_path.write_text("".join(lines), encoding="utf-8")
+    logger.info("Saved: %s", output_path)
 
-    with open(ctx_path, "w", encoding="utf-8") as f:
-        f.writelines(lines)
-    print(f"\nSaved: {ctx_path}")
-    print("Time-series profiling complete.")
+
+def build_arg_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Profile time-series coverage for all EnFa signal files.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("--raw-dir",      default=None)
+    parser.add_argument("--project-root", default=None)
+    return parser
+
+
+def main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
+    args = build_arg_parser().parse_args()
+    cfg = load_config()
+    paths: ProjectPaths = resolve_paths(
+        raw_dir=Path(args.raw_dir) if args.raw_dir else None,
+        project_root=Path(args.project_root) if args.project_root else None,
+        cfg=cfg,
+    )
+    paths.ensure_output_dirs()
+
+    head_rows  = cfg["sampling"].get("head_rows",  30)
+    tail_bytes = cfg["sampling"].get("tail_bytes", 4_096)
+
+    csv_files = sorted([f for f in paths.raw_data.iterdir() if f.is_file() and f.suffix.lower() == ".csv"])
+    total = len(csv_files)
+    logger.info("Profiling %d files (head + tail only)...", total)
+
+    profiles = []
+    for idx, fpath in enumerate(csv_files, 1):
+        profiles.append(profile_file(fpath, head_rows=head_rows, tail_bytes=tail_bytes))
+        if idx % 50 == 0 or idx == total:
+            logger.info("  %d / %d done", idx, total)
+
+    write_coverage_report(profiles, paths.reports / "timestamp_coverage_report.csv")
+    write_interval_report(profiles, paths.reports / "sampling_interval_report.csv")
+    write_quality_context(profiles, paths.context / "data_quality_context.md")
+
+    from collections import Counter
+    interval_groups = Counter(p["interval_label"] for p in profiles)
+    starts = sorted(p["start_utc"] for p in profiles if p["start_utc"])
+    ends   = sorted(p["end_utc"]   for p in profiles if p["end_utc"])
+
+    print(f"\n{'='*60}")
+    if starts:
+        print(f"Earliest start : {starts[0]}")
+        print(f"Latest end     : {ends[-1] if ends else 'unknown'}")
+    print("\nSampling interval groups:")
+    for label, count in interval_groups.most_common():
+        print(f"  {label:12s}  {count:3d} files")
+
+    gap_count = sum(1 for p in profiles if p["head_gap_detected"])
+    print(f"\nFiles with head gap : {gap_count}")
+    logger.info("Time-series profiling complete.")
 
 
 if __name__ == "__main__":

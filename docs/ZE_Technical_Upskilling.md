@@ -392,6 +392,7 @@ Per `context/session_log.md` — **EDA phase marked complete** for CLAUDE.md del
 
 | Document | Path |
 |----------|------|
+| Code review (readability & maintainability) | `docs/CODE_REVIEW.md` |
 | CEO briefing (HTML) | `reports/ZORO_CEO_Briefing.html` |
 | CEO upskilling (markdown) | `docs/ZORO_CEO_Upskilling.md` (if created) |
 | Master spec | `CLAUDE.md` |

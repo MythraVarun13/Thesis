@@ -1,79 +1,185 @@
 # EnFa Data Analysis — ZORO Energy
 
-EDA of the EnFa commercial building energy dataset to determine which ZORO MVP paths are feasible and how to ingest the data into the production pipeline.
+EDA of the EnFa commercial building energy dataset to determine which ZORO MVP paths
+are feasible and how to ingest the data into the production pipeline.
 
 **Status:** EDA complete · 223/233 signals pipeline-ready · Recommended MVP: Heat Pump FDD
 
 ---
 
-## Quick Start
+## Prerequisites
+
+| Tool | Minimum version | Notes |
+|------|----------------|-------|
+| Python | 3.10 | 3.11+ also supported |
+| pip | any recent | comes with Python |
+| Git | any | for cloning |
+| Jupyter | optional | only needed to open `.ipynb` notebooks |
+
+No database, no Docker, no cloud account needed to run the analysis scripts.
+
+---
+
+## Quick Start (Mac / Linux)
 
 ```bash
-# 1. Clone / open this folder
-cd "C:\Users\dellg\OneDrive\Documents\ZE"
+# 1. Clone or navigate to the project
+cd /path/to/ZE
 
-# 2. Install dependencies (system Python — no venv needed in sandbox)
-pip install pandas numpy matplotlib charset-normalizer python-dateutil
+# 2. Create and activate a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
 
-# 3. Run the full analysis pipeline in order
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. (Optional) Edit config.yaml if your data is in a non-standard location
+#    By default the scripts auto-detect the project root from their own path.
+#    See "Configuration" below if you need to override.
+
+# 5. Run the analysis pipeline in order
 python scripts/01_scan_files.py
 python scripts/02_detect_schema.py
 python scripts/03_profile_timeseries.py
 python scripts/05_classify_signals.py
 python scripts/08_generate_plots.py
 
-# OR: open the Jupyter notebooks for an explained walkthrough
+# 6. Run unit tests to verify everything works
+python -m pytest tests/ -v
+# (or without pytest: python -m unittest discover -s tests)
+
+# 7. Open notebooks for a step-by-step explained walkthrough
+pip install jupyter
 jupyter notebook notebooks/
+```
+
+## Quick Start (Windows — PowerShell)
+
+```powershell
+# 1. Navigate to the project
+cd "C:\path\to\ZE"
+
+# 2. Create and activate a virtual environment
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Run the pipeline
+python scripts/01_scan_files.py
+python scripts/02_detect_schema.py
+python scripts/03_profile_timeseries.py
+python scripts/05_classify_signals.py
+python scripts/08_generate_plots.py
+
+# 5. Run tests
+python -m pytest tests/ -v
+
+# 6. Open notebooks
+pip install jupyter
+jupyter notebook notebooks/
+```
+
+> **Windows execution policy:** If PowerShell blocks `.ps1` scripts, run:
+> `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+
+---
+
+## Configuration
+
+All paths and settings live in `config.yaml` at the project root.
+**You should not need to edit this for a standard setup** — scripts
+auto-detect the project root by looking for `config.yaml` walking up from
+their own directory.
+
+If your raw data is in a non-standard location, either:
+
+**Option A — edit `config.yaml`:**
+```yaml
+paths:
+  project_root: "/your/path/to/ZE"   # absolute path, forward slashes work on all platforms
+  raw_data: "data"                    # relative to project_root
+```
+
+**Option B — use CLI flags (any platform):**
+```bash
+python scripts/01_scan_files.py --raw-dir /your/path/to/ZE/data
+```
+
+**Option C — environment variable:**
+```bash
+export ZORO_PROJECT_ROOT=/your/path/to/ZE   # Mac/Linux
+set ZORO_PROJECT_ROOT=C:\your\path\to\ZE    # Windows CMD
+$env:ZORO_PROJECT_ROOT="C:\your\path\to\ZE" # Windows PowerShell
 ```
 
 ---
 
 ## What This Project Does
 
-We received 233 CSV files (~40.5 GB) from an InfluxDB export of the EnFa building's BMS. These files have German signal names, no documentation, and no tag dictionary. This project:
+We received 233 CSV files (~40.5 GB) from an InfluxDB export of the EnFa building BMS.
+The files have German signal names, no documentation, and no tag dictionary.
 
+This project:
 1. Inventories all files (sizes, formats, encodings)
-2. Detects CSV schema across all 233 files
+2. Detects CSV schema across all 233 files (head-only, no full loads)
 3. Profiles time coverage per signal (start date, end date, sampling interval)
 4. Parses the German thesis PDF to interpret signal names
-5. Classifies each signal (English meaning, unit, confidence)
+5. Classifies each signal (English meaning, unit, confidence, ZORO use cases)
 6. Maps each signal to ZORO's JSON v1 pipeline format
 7. Evaluates which ZORO MVP paths are feasible
-8. Generates plots and a data catalog for the team
+8. Generates plots and a data catalog
+
+**Key constraint:** The dataset is 40.5 GB. Scripts read only the first 6 KB
+(head) or last 4 KB (tail) of each file — never the full content.
 
 ---
 
 ## Script → Output Map
 
-| Script | What it does | Outputs |
-|--------|-------------|---------|
-| `scripts/01_scan_files.py` | Count and size all files | `reports/data_inventory.csv` |
-| `scripts/02_detect_schema.py` | Detect delimiter, encoding, columns | `reports/file_format_report.csv`<br>`reports/schema_summary.csv`<br>`reports/sample_rows/*.csv` |
-| `scripts/03_profile_timeseries.py` | Start/end dates, intervals, gaps | `reports/timestamp_coverage_report.csv`<br>`reports/sampling_interval_report.csv` |
-| `scripts/05_classify_signals.py` | German→English, unit, use-case tagging | `reports/signal_classification.csv`<br>`reports/sensor_catalog.csv`<br>`reports/zoro_pipeline_mapping.csv`<br>`context/signal_dictionary.md` |
-| `scripts/08_generate_plots.py` | 12 thematic exploratory plots | `reports/plots/01_*.png` → `12_*.png` |
-| `scripts/generate_flowchart.py` | EDA pipeline diagram | `reports/plots/00_eda_pipeline_flowchart.png` |
+| Script | What it does | Key outputs |
+|--------|-------------|-------------|
+| `01_scan_files.py` | File inventory (metadata only) | `reports/data_inventory.csv` |
+| `02_detect_schema.py` | Delimiter, encoding, schema | `reports/file_format_report.csv`, `reports/sample_rows/` |
+| `03_profile_timeseries.py` | Start/end dates, sampling intervals | `reports/timestamp_coverage_report.csv` |
+| `05_classify_signals.py` | German→English, unit, pipeline mapping | `reports/signal_classification.csv`, `reports/zoro_pipeline_mapping.csv` |
+| `08_generate_plots.py` | 12 exploratory plots | `reports/plots/01_*.png` → `12_*.png` |
 
-**Manually generated outputs:**
+All scripts are **idempotent** — re-running overwrites the same output files with fresh results.
 
-| Output | How |
-|--------|-----|
-| `reports/zoro_mvp_readiness_matrix.csv` | Written from analysis findings |
-| `reports/EDA_SUMMARY.md` | 16-section written report |
-| `reports/EnFa_Signal_Data_Catalog.html` | Python script (inline, not saved) |
-| `reports/ZORO_CEO_Briefing.html` | Python script (inline, not saved) |
-| `reports/plots/13_signal_gallery_*.png` | `/tmp/gallery.py` |
+---
+
+## Running Tests
+
+```bash
+# With pytest (recommended — install via requirements-dev.txt)
+pip install -r requirements-dev.txt
+pytest tests/ -v
+
+# Without pytest (stdlib only)
+python -m unittest discover -s tests -v
+
+# Or run a specific test file
+python tests/test_parse_ts.py
+```
+
+Tests cover:
+- `test_parse_ts.py` — 9 cases for timestamp parsing (Z suffix, milliseconds, bad input)
+- `test_match_signal.py` — 15 cases for signal classification (direct map, patterns, unknowns)
+- `test_delimiter_detection.py` — 9 cases for CSV delimiter detection (semicolon, comma, tab)
 
 ---
 
 ## Key Findings
 
-- **Data runs to May 2026** — this is live operational data, not historical
-- **All 233 files**: UTF-8, semicolon-delimited, standard InfluxDB schema — 100% consistent
-- **Dominant sampling interval**: ~20 seconds (169 signals)
-- **223 of 233 signals** are mapped to ZORO JSON v1 format (`device_id`, `metric`, `unit`)
-- **3 MVP paths are Ready**: Energy Dashboard, HVAC Advisory, Heat Pump FDD
-- **Recommended first MVP**: Heat Pump FDD — 3 HP units, 3.5 years, defrost at 20s resolution
+| Finding | Value |
+|---------|-------|
+| Data runs to | May 2026 (live, not historical) |
+| All 233 files | UTF-8, semicolon-delimited, standard InfluxDB schema |
+| Dominant interval | ~20 seconds (169 signals) |
+| Pipeline-ready signals | 223 / 233 |
+| Recommended first MVP | Heat Pump FDD |
 
 ---
 
@@ -83,110 +189,130 @@ We received 233 CSV files (~40.5 GB) from an InfluxDB export of the EnFa buildin
 ZE/
 ├── README.md                          ← you are here
 ├── CLAUDE.md                          ← project instructions for AI assistant
-├── config.yaml                        ← all paths and settings (edit here, not in scripts)
-├── requirements.txt                   ← Python dependencies
+├── config.yaml                        ← all paths and settings
+├── requirements.txt                   ← production dependencies
+├── requirements-dev.txt               ← dev/test dependencies (pytest, ruff, black)
+├── .gitignore
 │
 ├── data/
-│   ├── *.csv                          ← 233 raw signal files (READ ONLY)
-│   ├── processed/                     ← cleaned/resampled outputs
-│   └── samples/                       ← 30-day samples for prototyping
+│   ├── *.csv                          ← 233 raw signal files — READ ONLY, not in git
+│   ├── processed/                     ← cleaned/resampled outputs (gitignored)
+│   └── samples/                       ← 30-day samples for prototyping (gitignored)
+│
+├── src/
+│   └── zoro_eda/                      ← shared Python library (imported by all scripts)
+│       ├── __init__.py
+│       ├── config.py                  ← load_config() — reads config.yaml
+│       ├── paths.py                   ← ProjectPaths dataclass, resolve_paths()
+│       ├── csv_io.py                  ← parse_timestamp, detect_delimiter, read_head, read_tail
+│       ├── classify.py                ← classify_signal(), SignalClassification dataclass
+│       └── signal_rules.py            ← DIRECT_MAP + PATTERN_RULES (classification data)
 │
 ├── scripts/
 │   ├── 01_scan_files.py               ← Step 1: file inventory
 │   ├── 02_detect_schema.py            ← Step 2: schema detection
-│   ├── 03_profile_timeseries.py       ← Step 3: time coverage profiling
+│   ├── 03_profile_timeseries.py       ← Step 3: time-series profiling
 │   ├── 05_classify_signals.py         ← Step 4: signal classification
 │   └── 08_generate_plots.py           ← Step 5: exploratory plots
 │
 ├── notebooks/
-│   ├── 01_file_inventory.ipynb        ← Explained: what files do we have?
-│   ├── 02_schema_detection.ipynb      ← Explained: how are they formatted?
-│   ├── 03_timeseries_profiling.ipynb  ← Explained: what time windows?
-│   └── 04_signal_classification.ipynb ← Explained: what does each signal mean?
+│   ├── 01_file_inventory.ipynb        ← What files do we have?
+│   ├── 02_schema_detection.ipynb      ← How are they formatted?
+│   ├── 03_timeseries_profiling.ipynb  ← What time windows?
+│   └── 04_signal_classification.ipynb ← What does each signal mean?
+│
+├── tests/
+│   ├── conftest.py                    ← pytest path setup
+│   ├── test_parse_ts.py               ← timestamp parsing tests
+│   ├── test_match_signal.py           ← signal classification tests
+│   └── test_delimiter_detection.py    ← CSV delimiter detection tests
 │
 ├── reports/
 │   ├── ZORO_CEO_Briefing.html         ← Open in browser — CEO summary
 │   ├── EnFa_Signal_Data_Catalog.html  ← Open in browser — searchable signal reference
 │   ├── EDA_SUMMARY.md                 ← Full written EDA report
-│   ├── data_inventory.csv
-│   ├── file_format_report.csv
-│   ├── schema_summary.csv
-│   ├── timestamp_coverage_report.csv
-│   ├── sampling_interval_report.csv
-│   ├── signal_classification.csv      ← Master signal table
-│   ├── sensor_catalog.csv             ← Active signals only
-│   ├── zoro_pipeline_mapping.csv      ← JSON v1 mapping (use this for ingestion)
-│   ├── zoro_mvp_readiness_matrix.csv
+│   ├── signal_classification.csv      ← Master signal table (all 233 signals)
+│   ├── zoro_pipeline_mapping.csv      ← 223 signals mapped to JSON v1
+│   ├── zoro_mvp_readiness_matrix.csv  ← Per-MVP-path readiness scoring
 │   └── plots/
 │       ├── 00_eda_pipeline_flowchart.png
-│       ├── 01–12_*.png                ← Thematic plots
-│       └── 13_signal_gallery_*.png    ← Per-signal mini plots
+│       └── 01–13_*.png
 │
-├── context/                           ← AI assistant running notes (not for sharing)
-│   ├── thesis_context.md
-│   ├── signal_dictionary.md
-│   ├── zoro_use_case_mapping.md
-│   ├── physical_system_hypotheses.md
-│   └── ...
-│
-└── inputs/
-    └── thesis/
-        └── thesis_full.txt            ← Extracted text from Guillet 2016 PDF
+└── context/                           ← Running analysis notes (not for sharing)
+    ├── thesis_context.md
+    ├── signal_dictionary.md
+    └── ...
 ```
 
 ---
 
 ## Signal Classification — How It Works
 
-Signal names are German compound words from the BMS tag list. Classification uses four layers:
+Signal names are German compound words from the BMS tag list.
+Classification uses three layers in priority order:
 
-**1. Prefix convention** (reliable, high confidence)
-- `V_real` / `Vreal` → setpoint / configuration parameter
-- `greal` → calculated / aggregated value
-- `real` → raw measured value
-- `grealCluster` → battery cluster data
-- `green` → battery cluster raw (SMA Sunny Island)
-- `dint` → counter / pulse integral
+**Layer 1 — Exact match** (`signal_rules.DIRECT_MAP`)
+Handles edge cases: umlaut variants, underscores in unusual positions.
+Example: `grealIstWaermepumpVorlauf` → heat pump supply temperature.
 
-**2. German compound word decomposition**
-- `Vorlauf` = supply flow temperature
-- `Ruecklauf` = return flow temperature
-- `WP` = Wärmepumpe (heat pump)
-- `BHKW` = Blockheizkraftwerk (CHP/combined heat and power)
-- `Abtau` = defrost
-- `Sek` = seconds
-- `Leistung` = power
-- `Energie` / `E_` = energy
-- `Ladung` / `Lade` = charge
-- `Speicher` = storage
-- `Nachtabsenkung` = night setback
-- `WMZ` = Wärmemengenzähler (heat meter)
-- `FBH` = Fußbodenheizung (underfloor heating)
-- `BKT` = Betonkerntemperierung (concrete core activation)
+**Layer 2 — Pattern matching** (`signal_rules.PATTERN_RULES`)
+All listed substrings must be present (case-insensitive) in the signal name.
+Example: `["greal_wp", "abtau"]` matches `greal_WP1AbtauSek` → HP defrost duration.
 
-**3. Value range sanity check** (resolves ambiguous names)
-- 0–100 → likely SOC (%) or valve position
-- 15–80 → likely temperature (°C)
-- Negative possible → power signal (kW, can import/export)
-- Always positive → energy counter (kWh, cumulative)
+**Layer 3 — Fallback**
+`category="unknown"`, `confidence="low"`, not excluded — manual review needed.
 
-**4. Thesis confirmation** (Guillet 2016, Table 25)
-- Cross-referenced key signals against documented database variables
+**Key German vocabulary:**
 
-**Use-case tags explained:**
-- `use_energy` — measures energy flow: generation, consumption, storage
-- `use_hvac` — temperatures, thermal power, setpoints, zone control
-- `use_heatpump` — HP-specific: defrost, COP inputs, HP setpoints
-- `use_pv` — PV generation and forecasting signals
-- `use_battery` — battery SOC, charge/discharge power, cluster data
-- `use_weather` — outdoor conditions used as model inputs
-- `use_fdd` — fault detection: loss signals, defrost, phase currents, anomaly indicators
-- `use_mpc` — model predictive control needs: states + control actions + disturbances
+| German | English |
+|--------|---------|
+| WP / Wärmepumpe | heat pump |
+| BHKW / Blockheizkraftwerk | CHP / combined heat and power |
+| Vorlauf | supply / flow temperature |
+| Ruecklauf | return temperature |
+| Abtau | defrost |
+| Leistung | power |
+| Energie | energy |
+| WMZ / Wärmemengenzähler | heat meter |
+| FBH / Fußbodenheizung | underfloor heating |
+| Nachtabsenkung | night setback |
+| Speicher | storage / tank |
+| Sek / Sekunden | seconds |
 
-Confidence levels:
-- `high` — name + prefix + value range all consistent; thesis or direct confirmation
-- `medium` — name interpretation is reasonable but unit or exact meaning uncertain
-- `low` — no rule matched or genuinely ambiguous; manual review needed
+---
+
+## Dependencies
+
+`requirements.txt` (production):
+```
+pandas>=2.0
+numpy>=1.24
+matplotlib>=3.7
+charset-normalizer>=3.0
+python-dateutil>=2.8
+```
+
+`requirements-dev.txt` (development):
+```
+pytest>=7.0
+pytest-cov>=4.0
+ruff>=0.4
+black>=24.0
+```
+
+Optional extras:
+```bash
+pip install jupyter          # to run notebooks
+pip install pyyaml           # to read config.yaml (scripts fall back to defaults without it)
+```
+
+**No PyYAML required** — `config.py` falls back to built-in defaults if PyYAML is not installed.
+Scripts will still work; they just won't read overrides from `config.yaml`.
+
+**pdftotext** (only needed to re-extract thesis text):
+- Mac: `brew install poppler`
+- Linux: `sudo apt install poppler-utils`
+- Windows: download Poppler for Windows from https://github.com/oschwartz10612/poppler-windows
 
 ---
 
@@ -197,22 +323,7 @@ Confidence levels:
 | No solar irradiance (W/m²) | PV model less accurate | Add Open-Meteo or Solcast API to pipeline |
 | No electricity spot price | MPC limited to rule-based | Add Tibber or ENTSO-E feed |
 | 15 snapshot-only files (≤8 rows) | Exclude from modeling | Already excluded in `zoro_pipeline_mapping.csv` |
-| Hardcoded paths in scripts | Not portable | Use `config.yaml` — refactor in progress |
-| Full gap/duplicate scan not done | Unknown mid-series holes | Run DuckDB query on resampled data |
-
----
-
-## Dependencies
-
-```
-pandas>=2.0
-numpy>=1.24
-matplotlib>=3.7
-charset-normalizer>=3.0
-python-dateutil>=2.8
-jupyter           # for notebooks
-pdftotext         # system package — sudo apt install poppler-utils
-```
+| Full gap/duplicate scan not done | Unknown mid-series holes | Run on resampled subset using DuckDB |
 
 ---
 

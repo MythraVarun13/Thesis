@@ -196,3 +196,16 @@ Step 4: Signal classification (`scripts/05_classify_signals.py`) — map all 233
 ### Next Step
 
 - Optional: `docs/ZORO_CEO_Upskilling.md` for non-technical executive onboarding
+
+---
+
+## Session 6 — 2026-05-31 (code review doc)
+
+### What was done
+
+- Saved full readability/maintainability review and dataclass guidance to `docs/CODE_REVIEW.md`
+- Linked from `docs/ZE_Technical_Upskilling.md`
+
+### Reports Generated
+
+- `docs/CODE_REVIEW.md`
