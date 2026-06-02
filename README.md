@@ -1,9 +1,9 @@
 # EnFa Data Analysis — ZORO Energy
 
-EDA of the EnFa commercial building energy dataset to determine which ZORO MVP paths
-are feasible and how to ingest the data into the production pipeline.
+EDA of the EnFa commercial building energy dataset, including signal classification,
+full-data quality profiling, hourly resampling, TimescaleDB ingestion, and Grafana visualization.
 
-**Status:** EDA complete · 223/233 signals pipeline-ready · Recommended MVP: Heat Pump FDD
+**Status:** EDA complete · 215 signals profiled · Hourly Parquet ready · Grafana dashboard live
 
 ---
 
@@ -17,193 +17,125 @@ Download them from Google Drive:
 
 1. Download `data_2026_05_26.zip`
 2. Extract the zip — it contains a `data/` folder
-3. Move the contents of that `data/` folder into `<project_root>/data/`
+3. Move the contents into `<project_root>/data/`
 
-The final structure should look like:
 ```
 ZE/
 └── data/
     ├── greal_BatterieLadeZustand.csv
     ├── real_BatterieLeistung.csv
-    ├── real_PV_Gesamt.csv
     └── ... (233 files total)
 ```
 
-> **Note:** Keep the `data/` folder as-is. Never rename or modify the raw CSV files — they are the source of truth.
+> **Never rename or modify raw CSV files** — they are the source of truth.
 
 ---
 
 ## Prerequisites
 
-| Tool | Minimum version | Notes |
-|------|----------------|-------|
-| Python | 3.10 | 3.11+ also supported |
-| pip | any recent | comes with Python |
-| Git | any | for cloning |
-| Jupyter | optional | only needed to open `.ipynb` notebooks |
-
-No database, no Docker, no cloud account needed to run the analysis scripts.
+| Tool | Version | Notes |
+|------|---------|-------|
+| Python | 3.10+ | |
+| Docker Desktop | any recent | Required only for Grafana visualization (Step 3) |
+| Jupyter | optional | To open `.ipynb` notebooks |
 
 ---
 
-## Quick Start (Mac / Linux)
+## Quick Start
 
-```bash
-# 1. Clone or navigate to the project
-cd /path/to/ZE
-
-# 2. Create and activate a virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. (Optional) Edit config.yaml if your data is in a non-standard location
-#    By default the scripts auto-detect the project root from their own path.
-#    See "Configuration" below if you need to override.
-
-# 5. Run the analysis pipeline in order
-python scripts/01_scan_files.py
-python scripts/02_detect_schema.py
-python scripts/03_profile_timeseries.py
-python scripts/05_classify_signals.py
-python scripts/08_generate_plots.py
-
-# 6. Run unit tests to verify everything works
-python -m pytest tests/ -v
-# (or without pytest: python -m unittest discover -s tests)
-
-# 7. Open notebooks for a step-by-step explained walkthrough
-pip install jupyter
-jupyter notebook notebooks/
-```
-
-## Quick Start (Windows — PowerShell)
+### Step 1 — Analysis pipeline (EDA)
 
 ```powershell
-# 1. Navigate to the project
+# Windows PowerShell
 cd "C:\path\to\ZE"
-
-# 2. Create and activate a virtual environment
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-
-# 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Run the pipeline
+# Run once in order
+python scripts/01_scan_files.py          # file inventory
+python scripts/02_detect_schema.py       # schema detection
+python scripts/03_profile_timeseries.py  # time coverage and sampling intervals
+python scripts/05_classify_signals.py    # signal classification + ZORO pipeline mapping
+python scripts/06_signal_profiles.py --threads 6   # full-data quality profiles via DuckDB (~5 min)
+```
+
+```bash
+# Mac / Linux
+cd /path/to/ZE
+pip install -r requirements.txt
 python scripts/01_scan_files.py
 python scripts/02_detect_schema.py
 python scripts/03_profile_timeseries.py
 python scripts/05_classify_signals.py
-python scripts/08_generate_plots.py
-
-# 5. Run tests
-python -m pytest tests/ -v
-
-# 6. Open notebooks
-pip install jupyter
-jupyter notebook notebooks/
+python scripts/06_signal_profiles.py --threads 6
 ```
 
-> **Windows execution policy:** If PowerShell blocks `.ps1` scripts, run:
-> `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+### Step 2 — Resample to hourly Parquet
+
+Reads all 233 signals from the 40 GB raw CSVs via DuckDB and saves a single
+`data/processed/hourly.parquet` (~17 MB compressed, ~200 MB uncompressed).
+Run once — all further analysis reads from this file.
+
+```powershell
+python scripts/07_resample_hourly.py --threads 6
+# Runtime: ~5 minutes on a modern 6-core machine
+# Output:  data/processed/hourly.parquet
+```
+
+### Step 3 — Grafana visualization (optional, requires Docker)
+
+Start the local Docker stack (TimescaleDB + Grafana):
+
+```powershell
+cd "C:\path\to\ZoroEnergyPlatform\cloud"
+docker compose -f docker-compose.cloud.yml up -d
+cd "C:\path\to\ZE"
+```
+
+Load the hourly data into TimescaleDB (5–10 min, idempotent):
+
+```powershell
+python scripts/08_load_to_timescaledb.py
+```
+
+Create the Grafana dashboard:
+
+```powershell
+python scripts/09_create_grafana_dashboard.py
+```
+
+Open **http://localhost:3000** (admin / zoro) and navigate to **EnFa Building Analysis**.
 
 ---
 
-## Configuration
+## Script Reference
 
-Two config files exist — only one is yours to edit:
+| Script | Purpose | Runtime | Key output |
+|--------|---------|---------|------------|
+| `01_scan_files.py` | File inventory — sizes, extensions, empty files | seconds | `reports/data_inventory.csv` |
+| `02_detect_schema.py` | Delimiter, encoding, column names, 20-row samples | seconds | `reports/file_format_report.csv`, `reports/sample_rows/` |
+| `03_profile_timeseries.py` | Start/end timestamps, sampling intervals, gap estimate | seconds | `reports/timestamp_coverage_report.csv`, `reports/sampling_interval_report.csv` |
+| `05_classify_signals.py` | German→English signal names, units, ZORO pipeline mapping | seconds | `reports/signal_classification.csv`, `reports/zoro_pipeline_mapping.csv` |
+| `06_signal_profiles.py` | Full-data statistics for every signal via DuckDB | ~5 min | `reports/signal_quality_profiles.csv` |
+| `07_resample_hourly.py` | Resample 40 GB → hourly Parquet (correct agg per signal type) | ~5 min | `data/processed/hourly.parquet` |
+| `08_load_to_timescaledb.py` | Load hourly Parquet into local TimescaleDB | ~5 min | 5.18M rows in `observations` table |
+| `09_create_grafana_dashboard.py` | Build and register the Grafana dashboard via API | seconds | Dashboard at localhost:3000 |
 
-| File | Purpose | In git? |
-|------|---------|---------|
-| `config.yaml` | Shared project settings (delimiter, sampling params, etc.) | Yes — do not add personal paths |
-| `config_local.yaml` | Your machine-specific overrides | No — gitignored |
-
-**First-time setup:** copy the example and fill in your path:
-
-```bash
-cp config_local.yaml.example config_local.yaml
-```
-
-Then edit `config_local.yaml`:
-```yaml
-paths:
-  # Use forward slashes on all platforms
-  project_root: "/your/path/to/ZE"        # Mac/Linux
-  # project_root: "C:/Users/you/ZE"       # Windows
-```
-
-Scripts auto-detect the project root from their own file location, so
-`config_local.yaml` is only strictly needed if auto-detection fails (e.g.
-you run scripts from an unrelated working directory).
-
-**Alternative — CLI flags (no config file needed):**
-```bash
-python scripts/01_scan_files.py --raw-dir /your/path/to/ZE/data
-```
-
-**Alternative — environment variable:**
-```bash
-export ZORO_PROJECT_ROOT=/your/path/to/ZE   # Mac/Linux
-$env:ZORO_PROJECT_ROOT="C:/your/path/to/ZE" # Windows PowerShell
-```
+All scripts are idempotent — safe to re-run.
 
 ---
 
-## What This Project Does
+## Notebook Reference
 
-We received 233 CSV files (~40.5 GB) from an InfluxDB export of the EnFa building BMS.
-The files have German signal names, no documentation, and no tag dictionary.
-
-This project:
-1. Inventories all files (sizes, formats, encodings)
-2. Detects CSV schema across all 233 files (head-only, no full loads)
-3. Profiles time coverage per signal (start date, end date, sampling interval)
-4. Parses the German thesis PDF to interpret signal names
-5. Classifies each signal (English meaning, unit, confidence, ZORO use cases)
-6. Maps each signal to ZORO's JSON v1 pipeline format
-7. Evaluates which ZORO MVP paths are feasible
-8. Generates plots and a data catalog
-
-**Key constraint:** The dataset is 40.5 GB. Scripts read only the first 6 KB
-(head) or last 4 KB (tail) of each file — never the full content.
-
----
-
-## Script → Output Map
-
-| Script | What it does | Key outputs |
-|--------|-------------|-------------|
-| `01_scan_files.py` | File inventory (metadata only) | `reports/data_inventory.csv` |
-| `02_detect_schema.py` | Delimiter, encoding, schema | `reports/file_format_report.csv`, `reports/sample_rows/` |
-| `03_profile_timeseries.py` | Start/end dates, sampling intervals | `reports/timestamp_coverage_report.csv` |
-| `05_classify_signals.py` | German→English, unit, pipeline mapping | `reports/signal_classification.csv`, `reports/zoro_pipeline_mapping.csv` |
-| `08_generate_plots.py` | 12 exploratory plots | `reports/plots/01_*.png` → `12_*.png` |
-
-All scripts are **idempotent** — re-running overwrites the same output files with fresh results.
-
----
-
-## Running Tests
-
-```bash
-# With pytest (recommended — install via requirements-dev.txt)
-pip install -r requirements-dev.txt
-pytest tests/ -v
-
-# Without pytest (stdlib only)
-python -m unittest discover -s tests -v
-
-# Or run a specific test file
-python tests/test_parse_ts.py
-```
-
-Tests cover:
-- `test_parse_ts.py` — 9 cases for timestamp parsing (Z suffix, milliseconds, bad input)
-- `test_match_signal.py` — 15 cases for signal classification (direct map, patterns, unknowns)
-- `test_delimiter_detection.py` — 9 cases for CSV delimiter detection (semicolon, comma, tab)
+| Notebook | Purpose | Requires |
+|----------|---------|---------|
+| `01_file_inventory.ipynb` | Interactive file browser | — |
+| `02_schema_detection.ipynb` | Schema explorer | — |
+| `03_timeseries_profiling.ipynb` | Time coverage and sampling | — |
+| `04_signal_classification.ipynb` | Signal browser and classification review | `reports/signal_classification.csv` |
+| `05_signal_profiles.ipynb` | Interactive signal quality explorer — one signal or category at a time via DuckDB | raw CSVs |
+| `05_signal_profile_explorer.ipynb` | Legacy version of 05 (kept for reference) | `reports/signal_quality_profiles.csv` |
+| `06_resample_hourly.ipynb` | Self-contained resampler — same logic as script 07, interactive | raw CSVs |
+| `07_full_eda.ipynb` | Full EDA: HP COP, battery, energy balance, correlations | `data/processed/hourly.parquet` |
 
 ---
 
@@ -211,11 +143,66 @@ Tests cover:
 
 | Finding | Value |
 |---------|-------|
-| Data runs to | May 2026 (live, not historical) |
-| All 233 files | UTF-8, semicolon-delimited, standard InfluxDB schema |
-| Dominant interval | ~20 seconds (169 signals) |
-| Pipeline-ready signals | 223 / 233 |
-| Recommended first MVP | Heat Pump FDD |
+| Dataset | 233 CSV files, 40.5 GB, Dec 2022 → May 2026 (live, not historical) |
+| Format | UTF-8, semicolon-delimited, InfluxDB schema (`_time`, `_value`, `_measurement`) |
+| Dominant sampling interval | ~20 seconds (169 signals) |
+| Successfully profiled | 215 signals (15 commissioning snapshots skipped) |
+| Pipeline-mapped signals | 223 / 233 |
+| Hourly Parquet | 29,207 rows × 215 columns, 16.7 MB compressed |
+| TimescaleDB | 5.18 million observations (tenant `enfa-01`) |
+| Recommended first MVP | Heat Pump FDD → HP COP trend + defrost anomaly detection |
+
+---
+
+## Grafana Dashboard
+
+After running scripts 07, 08, and 09, open **http://localhost:3000** (admin / zoro).
+
+Dashboard: **EnFa Building Analysis** (`/d/enfa-overview`)
+
+| Panel | What it shows |
+|-------|--------------|
+| HP COP daily trend | Heat output / electrical input over 3.5 years |
+| WP1 / WP2 / WP3 defrost | Weekly defrost duration per heat pump unit |
+| Energy balance monthly | PV + BHKW generation vs building demand |
+| Battery SOC | All 4 battery clusters, hourly mean |
+| Outdoor temperature | Full 3.5-year record, 6h mean |
+| Signal browser | Dropdown to explore any of the 215 signals |
+
+The signal browser variable is populated live from TimescaleDB — any new signals loaded via script 08 automatically appear.
+
+---
+
+## Data Architecture
+
+```
+EnFa raw CSVs (233 files, 40.5 GB)
+    ↓ DuckDB (no full load into memory)
+    ↓ scripts/06_signal_profiles.py
+reports/signal_quality_profiles.csv    ← quality scorecard for every signal
+
+    ↓ scripts/07_resample_hourly.py    (mean/delta/sum/last per signal type)
+data/processed/hourly.parquet          ← 29K rows × 215 cols, 17 MB
+
+    ↓ scripts/08_load_to_timescaledb.py (direct psycopg2, bypasses Kafka)
+TimescaleDB observations hypertable    ← 5.18M rows, tenant='enfa-01'
+
+    ↓ scripts/09_create_grafana_dashboard.py
+Grafana dashboard                      ← localhost:3000
+```
+
+**Why DuckDB?** It queries CSV files directly from disk with SQL — no loading
+40 GB into Python memory. Aggregations that would take 20+ minutes with pandas
+take 30 seconds with DuckDB.
+
+**Aggregation rules for resampling:**
+
+| Signal type | Rule | Example signals |
+|-------------|------|----------------|
+| Cumulative energy/gas counters | MAX - MIN per hour | `greal_E_*`, `dint*` |
+| Defrost duration | SUM per hour | `greal_WP*AbtauSek` |
+| Setpoints / control params | LAST per hour + ffill | `V_real*` |
+| Everything else | MEAN per hour | temperatures, SOC, power |
 
 ---
 
@@ -223,80 +210,92 @@ Tests cover:
 
 ```
 ZE/
-├── README.md                          ← you are here
-├── CLAUDE.md                          ← project instructions for AI assistant
-├── config.yaml                        ← all paths and settings
-├── requirements.txt                   ← production dependencies
-├── requirements-dev.txt               ← dev/test dependencies (pytest, ruff, black)
-├── .gitignore
+├── README.md
+├── CLAUDE.md                           ← project instructions for AI assistant
+├── config.yaml                         ← shared project settings
+├── requirements.txt                    ← all dependencies (phased)
 │
 ├── data/
-│   ├── *.csv                          ← 233 raw signal files — READ ONLY, not in git
-│   ├── processed/                     ← cleaned/resampled outputs (gitignored)
-│   └── samples/                       ← 30-day samples for prototyping (gitignored)
-│
-├── src/
-│   └── zoro_eda/                      ← shared Python library (imported by all scripts)
-│       ├── __init__.py
-│       ├── config.py                  ← load_config() — reads config.yaml
-│       ├── paths.py                   ← ProjectPaths dataclass, resolve_paths()
-│       ├── csv_io.py                  ← parse_timestamp, detect_delimiter, read_head, read_tail
-│       ├── classify.py                ← classify_signal(), SignalClassification dataclass
-│       └── signal_rules.py            ← DIRECT_MAP + PATTERN_RULES (classification data)
+│   ├── *.csv                           ← 233 raw signal files — READ ONLY, not in git
+│   └── processed/
+│       └── hourly.parquet              ← hourly resampled output (gitignored)
 │
 ├── scripts/
-│   ├── 01_scan_files.py               ← Step 1: file inventory
-│   ├── 02_detect_schema.py            ← Step 2: schema detection
-│   ├── 03_profile_timeseries.py       ← Step 3: time-series profiling
-│   ├── 05_classify_signals.py         ← Step 4: signal classification
-│   └── 08_generate_plots.py           ← Step 5: exploratory plots
+│   ├── 01_scan_files.py                ← Step 1: file inventory
+│   ├── 02_detect_schema.py             ← Step 2: schema detection
+│   ├── 03_profile_timeseries.py        ← Step 3: time-series profiling
+│   ├── 05_classify_signals.py          ← Step 4: signal classification
+│   ├── 06_signal_profiles.py           ← Step 5: full-data quality profiles (DuckDB)
+│   ├── 07_resample_hourly.py           ← Step 6: resample 40 GB → hourly Parquet
+│   ├── 08_load_to_timescaledb.py       ← Step 7: load Parquet → TimescaleDB
+│   └── 09_create_grafana_dashboard.py  ← Step 8: register Grafana dashboard
 │
 ├── notebooks/
-│   ├── 01_file_inventory.ipynb        ← What files do we have?
-│   ├── 02_schema_detection.ipynb      ← How are they formatted?
-│   ├── 03_timeseries_profiling.ipynb  ← What time windows?
-│   └── 04_signal_classification.ipynb ← What does each signal mean?
+│   ├── 01_file_inventory.ipynb
+│   ├── 02_schema_detection.ipynb
+│   ├── 03_timeseries_profiling.ipynb
+│   ├── 04_signal_classification.ipynb
+│   ├── 05_signal_profiles.ipynb        ← interactive signal quality explorer
+│   ├── 06_resample_hourly.ipynb        ← interactive resampler
+│   └── 07_full_eda.ipynb               ← full EDA (requires hourly.parquet)
 │
-├── tests/
-│   ├── conftest.py                    ← pytest path setup
-│   ├── test_parse_ts.py               ← timestamp parsing tests
-│   ├── test_match_signal.py           ← signal classification tests
-│   └── test_delimiter_detection.py    ← CSV delimiter detection tests
+├── src/
+│   └── zoro_eda/                       ← shared Python library
+│       ├── config.py                   ← load_config()
+│       ├── paths.py                    ← ProjectPaths, resolve_paths()
+│       └── ...
 │
 ├── reports/
-│   ├── ZORO_CEO_Briefing.html         ← Open in browser — CEO summary
-│   ├── EnFa_Signal_Data_Catalog.html  ← Open in browser — searchable signal reference
-│   ├── EDA_SUMMARY.md                 ← Full written EDA report
-│   ├── signal_classification.csv      ← Master signal table (all 233 signals)
-│   ├── zoro_pipeline_mapping.csv      ← 223 signals mapped to JSON v1
-│   ├── zoro_mvp_readiness_matrix.csv  ← Per-MVP-path readiness scoring
+│   ├── data_inventory.csv
+│   ├── signal_classification.csv       ← master signal table (223 signals)
+│   ├── zoro_pipeline_mapping.csv       ← 223 signals mapped to JSON v1
+│   ├── signal_quality_profiles.csv     ← DuckDB full-data quality scorecard
+│   ├── resample_log.csv                ← aggregation type used per signal
+│   ├── EDA_SUMMARY.md
 │   └── plots/
-│       ├── 00_eda_pipeline_flowchart.png
-│       └── 01–13_*.png
 │
-└── context/                           ← Running analysis notes (not for sharing)
-    ├── thesis_context.md
+└── context/                            ← running analysis notes
+    ├── session_log.md
+    ├── decisions_log.md
     ├── signal_dictionary.md
     └── ...
 ```
 
 ---
 
-## Signal Classification — How It Works
+## Dependencies
 
-Signal names are German compound words from the BMS tag list.
-Classification uses three layers in priority order:
+`requirements.txt` covers all phases:
 
-**Layer 1 — Exact match** (`signal_rules.DIRECT_MAP`)
-Handles edge cases: umlaut variants, underscores in unusual positions.
-Example: `grealIstWaermepumpVorlauf` → heat pump supply temperature.
+```
+# EDA
+pandas, numpy, matplotlib, charset-normalizer, python-dateutil, openpyxl
 
-**Layer 2 — Pattern matching** (`signal_rules.PATTERN_RULES`)
-All listed substrings must be present (case-insensitive) in the signal name.
-Example: `["greal_wp", "abtau"]` matches `greal_WP1AbtauSek` → HP defrost duration.
+# Full-data profiling and resampling (DuckDB)
+duckdb, pyarrow, seaborn, statsmodels, tqdm
 
-**Layer 3 — Fallback**
-`category="unknown"`, `confidence="low"`, not excluded — manual review needed.
+# TimescaleDB + Grafana pipeline
+psycopg2-binary, requests
+
+# MPC phase (install when ready)
+# cvxpy, scikit-learn
+
+# Forecasting phase (install when ready)
+# prophet, sktime, darts
+
+# MVP demo phase (install when ready)
+# streamlit, plotly
+```
+
+---
+
+## Signal Classification
+
+Signal names are German BMS tags. Classification uses three layers:
+
+1. **Exact match** (`signal_rules.DIRECT_MAP`) — edge cases and umlaut variants
+2. **Pattern matching** (`signal_rules.PATTERN_RULES`) — all listed substrings must be present
+3. **Fallback** — `category="unknown"`, flagged for manual review
 
 **Key German vocabulary:**
 
@@ -310,56 +309,21 @@ Example: `["greal_wp", "abtau"]` matches `greal_WP1AbtauSek` → HP defrost dura
 | Leistung | power |
 | Energie | energy |
 | WMZ / Wärmemengenzähler | heat meter |
-| FBH / Fußbodenheizung | underfloor heating |
 | Nachtabsenkung | night setback |
 | Speicher | storage / tank |
 | Sek / Sekunden | seconds |
 
 ---
 
-## Dependencies
-
-`requirements.txt` (production):
-```
-pandas>=2.0
-numpy>=1.24
-matplotlib>=3.7
-charset-normalizer>=3.0
-python-dateutil>=2.8
-```
-
-`requirements-dev.txt` (development):
-```
-pytest>=7.0
-pytest-cov>=4.0
-ruff>=0.4
-black>=24.0
-```
-
-Optional extras:
-```bash
-pip install jupyter          # to run notebooks
-pip install pyyaml           # to read config.yaml (scripts fall back to defaults without it)
-```
-
-**No PyYAML required** — `config.py` falls back to built-in defaults if PyYAML is not installed.
-Scripts will still work; they just won't read overrides from `config.yaml`.
-
-**pdftotext** (only needed to re-extract thesis text):
-- Mac: `brew install poppler`
-- Linux: `sudo apt install poppler-utils`
-- Windows: download Poppler for Windows from https://github.com/oschwartz10612/poppler-windows
-
----
-
 ## Known Gaps
 
-| Gap | Impact | Suggested Fix |
-|-----|--------|--------------|
-| No solar irradiance (W/m²) | PV model less accurate | Add Open-Meteo or Solcast API to pipeline |
-| No electricity spot price | MPC limited to rule-based | Add Tibber or ENTSO-E feed |
-| 15 snapshot-only files (≤8 rows) | Exclude from modeling | Already excluded in `zoro_pipeline_mapping.csv` |
-| Full gap/duplicate scan not done | Unknown mid-series holes | Run on resampled subset using DuckDB |
+| Gap | Impact | Status |
+|-----|--------|--------|
+| No solar irradiance (W/m²) | PV model less accurate | Open — add Open-Meteo or Solcast API |
+| No electricity spot price | MPC limited to rule-based | Open — add Tibber or ENTSO-E feed |
+| HP COP needs signal name verification | COP panel may show no data until confirmed | Check `greal_E__WMZ_WP` vs actual signal name in parquet |
+| 5 truly unknown signals (val1006-1009) | Excluded from modeling | Thesis appendix lookup needed |
+| notebook 07_full_eda not yet run | No verified EDA plots | Requires hourly.parquet ✓ (now available) |
 
 ---
 

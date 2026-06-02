@@ -209,3 +209,194 @@ Step 4: Signal classification (`scripts/05_classify_signals.py`) — map all 233
 ### Reports Generated
 
 - `docs/CODE_REVIEW.md`
+
+---
+
+## Session 9 — 2026-06-01 (bug fix: DuckDB column spec + TRIM error)
+
+### What was done
+
+- Fixed two bugs that caused `scripts/06_signal_profiles.py` to fail on all 230 signals
+- Fixed same bugs in `scripts/07_resample_hourly.py` and generator script
+- Regenerated notebooks 05, 06, 07 with corrected SQL
+- Successfully ran `scripts/06_signal_profiles.py` — 215 signals profiled in 3 minutes, 0 errors
+
+### Bug 1: `columns=` mismatch (InvalidInputError)
+
+Root cause: CSV files have 5 columns (`Unnamed: 0; _time; _value; _field; _measurement`)
+but DuckDB `read_csv` call specified only 4 (missing `Unnamed: 0`).
+Fix: Remove `columns=` parameter entirely — let DuckDB auto-detect all 5 columns.
+Files changed: `scripts/06_signal_profiles.py`, `scripts/07_resample_hourly.py`, generator script.
+
+### Bug 2: `TRIM(_value)` on non-VARCHAR (BinderError)
+
+Root cause: Without explicit `columns=`, DuckDB infers `_value` as BIGINT for integer-valued files.
+`TRIM()` only accepts VARCHAR — fails on BIGINT/DOUBLE.
+Fix: Replace `WHERE _value IS NOT NULL AND TRIM(_value) != ''`
+with `WHERE TRY_CAST(_value AS DOUBLE) IS NOT NULL`.
+Files changed: same as above.
+
+### Results
+
+- `reports/signal_quality_profiles.csv` — 215 signals profiled, 15 commissioning snapshots skipped, 0 errors
+- 185 signals show gap_ratio=100% — these are V_real_* event-driven setpoints; expected behavior,
+  NOT missing data. Gap estimation assumes 20s sampling for all signals which overstates gaps for setpoints.
+
+### What Has NOT Been Run Yet
+
+- `scripts/07_resample_hourly.py` — NOT executed; `data/processed/hourly.parquet` does not exist
+- Notebook 07 cannot run until hourly.parquet exists
+
+### Next Steps
+
+1. Run `python scripts/07_resample_hourly.py --threads 6` (30-60 min)
+2. Open `notebooks/07_full_eda.ipynb` → HP COP chart and all EDA
+
+---
+
+## Session 8 — 2026-06-01 (notebook rebuild — correct 01-04 pattern)
+
+### What was done
+
+- Identified that notebooks 05 and 06 from Session 7 were built wrong — they required scripts to run first (consumer pattern) instead of doing the work inline (01-04 pattern)
+- Rebuilt three notebooks from scratch following the correct pattern:
+  - `notebooks/05_signal_profiles.ipynb` — does signal profiling inline (corresponds to scripts/06); replaces wrong `05_signal_profile_explorer.ipynb`
+  - `notebooks/06_resample_hourly.ipynb` — does hourly resampling inline (corresponds to scripts/07); replaces wrong `06_full_eda.ipynb`
+  - `notebooks/07_full_eda.ipynb` — full EDA using the Parquet (HP COP, battery, energy, correlations)
+- Old notebooks (`05_signal_profile_explorer.ipynb`, `06_full_eda.ipynb`) are superseded; can be deleted
+
+### Notebooks Created
+
+- `notebooks/05_signal_profiles.ipynb` — 13 cells (7 md, 6 code); self-contained signal profiler
+- `notebooks/06_resample_hourly.ipynb` — 15 cells (8 md, 7 code); self-contained resampler
+- `notebooks/07_full_eda.ipynb` — 15 cells (7 md, 8 code); full system EDA
+
+### Key design correction
+
+Each notebook now follows the 01-04 pattern: functions are defined INSIDE the notebook cells,
+the notebook does the actual work. No scripts need to run before opening any notebook.
+The corresponding scripts (06, 07) are the command-line versions of the same logic.
+
+### What Has NOT Been Run Yet
+
+- Notebook 05 Step 4 (profiling all signals) — NOT executed; `reports/signal_quality_profiles.csv` does not exist
+- Notebook 06 Steps 4-6 (resampling) — NOT executed; `data/processed/hourly.parquet` does not exist
+- Notebook 07 cannot be run until hourly.parquet exists
+
+### Next Steps
+
+1. Open `notebooks/05_signal_profiles.ipynb` — run Steps 1-3 (interactive, instant) to explore signal categories
+2. Run Step 4 in notebook 05 (60-120 min) → produces `reports/signal_quality_profiles.csv`
+3. Open `notebooks/06_resample_hourly.ipynb` — run Steps 1-3 to understand aggregation logic
+4. Run Steps 4-6 in notebook 06 (30-60 min) → produces `data/processed/hourly.parquet`
+5. Open `notebooks/07_full_eda.ipynb` → HP COP chart (first customer deliverable) and all EDA
+
+---
+
+## Session 10 — 2026-06-02 (Grafana visualization pipeline)
+
+### What was done
+
+- Installed `psycopg2-binary` (was missing; needed for TimescaleDB loader)
+- Started `scripts/07_resample_hourly.py --threads 6` in background (running, ~5 min actual runtime)
+- Written `scripts/08_load_to_timescaledb.py` — loads hourly.parquet into local TimescaleDB
+- Written `scripts/09_create_grafana_dashboard.py` — creates EnFa Overview dashboard via Grafana HTTP API
+- Added `GF_TIMESCALEDB_PASSWORD: zoro` to `ZoroEnergyPlatform/cloud/docker-compose.cloud.yml`
+- Updated `requirements.txt` with psycopg2-binary and requests
+
+### Scripts Created
+
+- `scripts/08_load_to_timescaledb.py` — new; reads hourly.parquet + pipeline mapping → inserts to TimescaleDB
+- `scripts/09_create_grafana_dashboard.py` — new; builds 6-panel dashboard + registers via Grafana API
+
+### Infrastructure Modified
+
+- `ZoroEnergyPlatform/cloud/docker-compose.cloud.yml` — added `GF_TIMESCALEDB_PASSWORD: zoro` env var to Grafana service
+- Grafana provisioning files already existed (found at `cloud/grafana/provisioning/`) — not modified, already correct
+
+### Key Technical Decisions
+
+- `dp_hash` uses `sha256(f"enfa-01/enfa-building-01/{signal_name}".encode()).hexdigest()[:8]` — uses signal_name directly because zoro_device_id_suffix+metric has 30 collision groups in the mapping
+- Kafka bypassed for historical load — direct psycopg2 bulk insert into observations hypertable
+- Dashboard panels: HP COP, defrost comparison, energy balance, battery SOC, outdoor temp, signal browser
+
+### Dashboard Panels (enfa_overview)
+
+1. HP COP daily trend — pivot on greal_E__WMZ_WP / greal_AZ_WP_Energie
+2. WP1/WP2/WP3 defrost comparison — weekly sum of AbtauSek per unit
+3. Energy balance monthly — PV + BHKW vs building demand (MAX-MIN delta)
+4. Battery SOC + 4 clusters — hourly mean
+5. Outdoor temperature — 6h mean
+6. Signal browser — Grafana variable dropdown → any of 215 signals
+
+### Everything Completed This Session
+
+- `scripts/07_resample_hourly.py` — RAN successfully (4 min 26 sec, 215 signals, 29,207 rows)
+- `data/processed/hourly.parquet` — EXISTS (16.7 MB snappy-compressed)
+- `scripts/08_load_to_timescaledb.py` — RAN successfully (5.18M rows loaded in ~4 min)
+- `scripts/09_create_grafana_dashboard.py` — RAN successfully
+- Grafana dashboard: http://localhost:3000/d/enfa-overview/enfa-building-analysis
+- JSON also saved to provisioning folder (auto-loads on restart)
+
+### Note: Unicode Bug in Windows Console
+
+Both script 07 and script 09 used the `→` Unicode arrow (U+2192) in print statements.
+Windows cp1252 console encoding cannot encode this character — scripts crash with UnicodeEncodeError
+AFTER the work is done. Both fixed with `->`. Pattern to avoid in all future scripts.
+
+### Next Steps
+
+1. Open http://localhost:3000 → "EnFa Building Analysis" dashboard
+2. Use Signal browser dropdown to explore any of 215 signals
+3. Check HP COP panel — may need signal name adjustment (actual signal: greal_E__WMZ_WP vs greal_AZ_WP_Energie)
+4. Verify energy balance panel shows PV + BHKW vs building demand correctly
+5. If adding to notebook 07: query TimescaleDB with pandas + psycopg2 instead of raw CSV
+
+---
+
+## Session 7 — 2026-06-01 (plan revision + scripts 06/07)
+
+### What was done
+
+- Reviewed and rewrote `inputs/instructions/plan.md` with critical corrections and expanded scope
+- Installed duckdb 1.5.3, pyarrow 24.0.0, seaborn 0.13.2, statsmodels 0.14.6, tqdm into system Python 3.10
+- Updated `requirements.txt` with phased dependency sections (EDA / MPC / forecasting / MVP demo)
+- Written `scripts/06_signal_profiles.py` — DuckDB full-data signal quality profiling
+- Written `scripts/07_resample_hourly.py` — resample 40 GB → `data/processed/hourly.parquet`
+- Built `notebooks/05_signal_profile_explorer.ipynb` — interactive signal quality explorer, one signal/category at a time using DuckDB
+- Built `notebooks/06_full_eda.ipynb` — full EDA of all 11 subsystems using hourly.parquet
+- Updated `context/session_log.md` and `context/decisions_log.md`
+
+### Scripts Created / Modified
+
+- `scripts/06_signal_profiles.py` — new
+- `scripts/07_resample_hourly.py` — new
+- `requirements.txt` — updated with phased deps
+
+### Notebooks Created
+
+- `notebooks/05_signal_profile_explorer.ipynb` — new
+- `notebooks/06_full_eda.ipynb` — new
+
+### Critical Plan Corrections Made
+
+1. **Energy aggregation bug fixed** — `greal_E_*` signals are cumulative counters; correct aggregation is `MAX-MIN` per hour (not `SUM`)
+2. **MPC scope clarified** — MPC is the primary end goal, not just HP FDD; all 233 signals must be fully analysed
+3. **Excluded files documented** — 3 artifacts (A, _value, pilot) + 15 commissioning snapshots excluded from all processing
+4. **Timezone handling added** — UTC stored in Parquet; convert to `Europe/Berlin` only for plotting occupancy/daily profiles
+5. **Setpoint forward-fill added** — `V_real*` event-driven signals need `ffill()` after hourly resampling
+6. **Toolchain expanded** — Prophet (forecasting), Streamlit (MVP demo), sktime/cvxpy (MPC phase) staged for future installation
+
+### What Has NOT Been Run Yet
+
+- `scripts/06_signal_profiles.py` — NOT executed; `reports/signal_quality_profiles.csv` does not exist
+- `scripts/07_resample_hourly.py` — NOT executed; `data/processed/hourly.parquet` does not exist
+- Notebooks 05 and 06 cannot be fully run until the above scripts complete
+
+### Next Steps
+
+1. Run `python scripts/06_signal_profiles.py --threads 6` (60–120 min)
+2. Explore results in `notebooks/05_signal_profile_explorer.ipynb`
+3. Run `python scripts/07_resample_hourly.py --threads 6` (30–60 min)
+4. Run full EDA in `notebooks/06_full_eda.ipynb`
+5. HP COP chart → first customer deliverable

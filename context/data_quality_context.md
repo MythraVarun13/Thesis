@@ -141,3 +141,8 @@ Files with irregular gaps in first 30 rows:
 | `greal_LeistungBHKW1.csv` | `2022-12-07T14:11:41` | 1266.7 | ~20s |
 | `greal_LeistungBHKW2.csv` | `2022-12-07T14:11:41` | 1266.7 | ~20s |
 | `real_BatterieLeistung.csv` | `2022-12-07T14:11:41` | 1266.7 | ~20s |
+
+Session findings -- Signal Profile Explorer:
+- (replace with your observations after exploring profiles)
+- e.g. WP2 has higher gap ratio than WP1/WP3
+- e.g. greal_E_WP shows expected monotone-increasing counter behaviour

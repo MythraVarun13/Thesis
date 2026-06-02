@@ -568,6 +568,46 @@ Maintain short, practical next actions.
 
 ---
 
+## **7.16 Mandatory End-of-Session Context Update**
+
+At the end of every session — without being asked — you MUST update both of these files:
+
+**Always update:**
+
+`context/session_log.md`
+
+Append a new session block with:
+* Session number and date
+* What was done
+* Scripts created or modified
+* Notebooks created or modified
+* Reports generated
+* Main findings
+* What has NOT been run yet (if anything)
+* Next steps
+
+**Update only if decisions were made:**
+
+`context/decisions_log.md`
+
+Append a new row for every decision made during the session.
+
+A decision is anything that affects how future work is done, such as:
+* Choosing a tool or library
+* Fixing an approach (e.g. aggregation rule)
+* Defining a naming convention
+* Correcting a previous assumption
+* Changing scope or priorities
+* Clarifying a pattern (e.g. notebook must be self-contained)
+
+**When to do this:**
+
+Before ending any response that involved creating files, running scripts, writing notebooks, updating plans, or making any technical choice. Do not wait for the user to ask.
+
+**Do not skip this even if the session was short.**
+
+---
+
 ## **8\. No Tag Dictionary Available**
 
 There is currently no separate BMS tag list, Modbus register map, KNX group address list, or unit dictionary.

@@ -4,8 +4,30 @@ matplotlib>=3.7
 charset-normalizer>=3.0
 python-dateutil>=2.8
 openpyxl>=3.0
-# The following require internet/pip install when available:
+
+# Phase 1-2 EDA (installed)
+duckdb>=1.0
+pyarrow>=14.0
+seaborn>=0.12
+statsmodels>=0.14
+tqdm>=4.60
+
+# Phase 2-3 TimescaleDB + Grafana (installed)
+psycopg2-binary>=2.9
+requests>=2.31
+
+# Phase 3 MPC (install when MPC phase begins)
+# cvxpy
+# scikit-learn
+
+# Phase 2 forecasting (install when forecasting begins)
+# prophet
+# sktime
+# darts
+
+# Phase 4 MVP demo (install when Streamlit demo begins)
+# streamlit
+# plotly
+
+# Optional
 # polars
-# duckdb
-# pyarrow
-# tqdm
