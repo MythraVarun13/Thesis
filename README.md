@@ -57,6 +57,18 @@ ZE/
 | Docker Desktop | any recent | Required only for Grafana visualization (Step 3) |
 | Jupyter | optional | To open `.ipynb` notebooks |
 
+### Requirements files
+
+| File | Who needs it | What it installs |
+|------|-------------|-----------------|
+| `requirements.txt` | **Everyone** — run this | pandas, duckdb, pyarrow, psycopg2, requests, matplotlib, seaborn, tqdm, etc. |
+| `requirements-dev.txt` | Contributors only — optional | pytest, ruff, black (testing and code formatting) |
+
+```powershell
+pip install -r requirements.txt           # always run this
+pip install -r requirements-dev.txt       # only if you want to run tests or contribute code
+```
+
 ---
 
 ## Quick Start
@@ -64,10 +76,7 @@ ZE/
 ### Step 1 — Analysis pipeline (EDA)
 
 ```powershell
-# Windows PowerShell — run from the cloned repo root
-pip install -r requirements.txt
-
-# Run once in order
+# Windows PowerShell — run once in order
 python scripts/01_scan_files.py          # file inventory
 python scripts/02_detect_schema.py       # schema detection
 python scripts/03_profile_timeseries.py  # time coverage and sampling intervals
@@ -76,8 +85,7 @@ python scripts/06_signal_profiles.py --threads 6   # full-data quality profiles 
 ```
 
 ```bash
-# Mac / Linux — run from the cloned repo root
-pip install -r requirements.txt
+# Mac / Linux — run once in order
 python scripts/01_scan_files.py
 python scripts/02_detect_schema.py
 python scripts/03_profile_timeseries.py
