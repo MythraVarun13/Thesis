@@ -1,0 +1,54 @@
+# EnFa EDA — Local Visualization Stack
+# TimescaleDB + Grafana only (no Redpanda — batch load bypasses Kafka)
+#
+# Usage:
+#   docker compose -f docker/docker-compose.yml up -d
+#
+# UIs after start:
+#   Grafana      : http://localhost:3000   admin / zoro
+#   TimescaleDB  : localhost:5432  user=zoro  pass=zoro  db=zoro
+
+services:
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: enfa-timescaledb
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       zoro
+      POSTGRES_USER:     zoro
+      POSTGRES_PASSWORD: zoro
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescale-data:/var/lib/postgresql/data
+      - ./schema/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "zoro", "-d", "zoro"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: enfa-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER:     admin
+      GF_SECURITY_ADMIN_PASSWORD: zoro
+      GF_USERS_ALLOW_SIGN_UP:     "false"
+      GF_AUTH_ANONYMOUS_ENABLED:  "false"
+      GF_PATHS_PROVISIONING:      /etc/grafana/provisioning
+      GF_TIMESCALEDB_PASSWORD:    zoro
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+
+volumes:
+  timescale-data:
+  grafana-data:

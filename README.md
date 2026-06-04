@@ -81,29 +81,76 @@ python scripts/07_resample_hourly.py --threads 6
 # Output:  data/processed/hourly.parquet
 ```
 
-### Step 3 — Grafana visualization (optional, requires Docker)
+### Step 3 — Grafana visualization (optional)
 
-Start the local Docker stack (TimescaleDB + Grafana):
+> Steps 1 and 2 are completely self-contained inside this repo.
+> Step 3 requires **Docker Desktop** to run TimescaleDB and Grafana locally.
+> No other repository is needed — everything is bundled in `docker/`.
 
-```powershell
-cd "C:\path\to\ZoroEnergyPlatform\cloud"
-docker compose -f docker-compose.cloud.yml up -d
-cd "C:\path\to\ZE"
+#### 3a. Install Docker Desktop
+
+| Platform | Download |
+|----------|---------|
+| Windows  | https://docs.docker.com/desktop/setup/install/windows-install/ |
+| Mac      | https://docs.docker.com/desktop/setup/install/mac-install/ |
+| Linux (Ubuntu/Debian) | `sudo apt install docker.io docker-compose-plugin` |
+
+After installing, start Docker Desktop and wait for the whale icon to appear in the taskbar (Windows/Mac).
+
+#### 3b. Start the local stack
+
+All required files live in `docker/` inside this repo:
+
+```
+docker/
+├── docker-compose.yml                          ← TimescaleDB + Grafana
+├── schema/
+│   └── init.sql                                ← applied automatically on first start
+└── grafana/
+    └── provisioning/
+        ├── datasources/timescaledb.yml         ← auto-connects Grafana to TimescaleDB
+        └── dashboards/dashboard.yml            ← auto-loads dashboard JSON files
 ```
 
-Load the hourly data into TimescaleDB (5–10 min, idempotent):
+```powershell
+# From the ZE project root
+docker compose -f docker/docker-compose.yml up -d
+
+# Verify both containers are healthy
+docker ps
+# Expected output:
+#   enfa-timescaledb   Up (healthy)
+#   enfa-grafana       Up
+```
+
+> **First start only:** TimescaleDB runs `docker/schema/init.sql` automatically.
+> This creates all required tables (`tenants`, `buildings`, `datapoints`, `observations`).
+> Subsequent starts skip this step — your data is preserved in a named Docker volume.
+
+#### 3c. Load EnFa data into TimescaleDB
+
+Reads `data/processed/hourly.parquet` (from Step 2) and inserts 5.18 million
+hourly observations. Idempotent — safe to re-run.
 
 ```powershell
 python scripts/08_load_to_timescaledb.py
+# Runtime: ~5 minutes
 ```
 
-Create the Grafana dashboard:
+#### 3d. Register the Grafana dashboard
 
 ```powershell
 python scripts/09_create_grafana_dashboard.py
 ```
 
-Open **http://localhost:3000** (admin / zoro) and navigate to **EnFa Building Analysis**.
+Open **http://localhost:3000** (admin / zoro) → **EnFa Building Analysis**.
+
+#### Stopping and restarting
+
+```powershell
+docker compose -f docker/docker-compose.yml down      # stop (data preserved)
+docker compose -f docker/docker-compose.yml down -v   # stop + delete all data
+```
 
 ---
 
@@ -238,6 +285,15 @@ ZE/
 │   ├── 05_signal_profiles.ipynb        ← interactive signal quality explorer
 │   ├── 06_resample_hourly.ipynb        ← interactive resampler
 │   └── 07_full_eda.ipynb               ← full EDA (requires hourly.parquet)
+│
+├── docker/                             ← self-contained visualization stack
+│   ├── docker-compose.yml              ← TimescaleDB + Grafana (no external deps)
+│   ├── schema/
+│   │   └── init.sql                    ← applied automatically on first container start
+│   └── grafana/
+│       └── provisioning/
+│           ├── datasources/timescaledb.yml
+│           └── dashboards/dashboard.yml
 │
 ├── src/
 │   └── zoro_eda/                       ← shared Python library
