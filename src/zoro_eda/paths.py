@@ -116,7 +116,15 @@ def resolve_paths(
             return root / cfg["paths"].get(key, default)
         return root / default
 
-    raw = Path(raw_dir).resolve() if raw_dir is not None else root / "data"
+    if raw_dir is not None:
+        raw = Path(raw_dir).resolve()
+    elif cfg and "paths" in cfg and "raw_data" in cfg["paths"]:
+        raw_data_val = cfg["paths"]["raw_data"]
+        raw_data_path = Path(raw_data_val)
+        # Absolute path in config (e.g. external drive) — use directly
+        raw = raw_data_path if raw_data_path.is_absolute() else root / raw_data_val
+    else:
+        raw = root / "data"
 
     return ProjectPaths(
         root=root,

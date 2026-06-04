@@ -5,8 +5,6 @@
 #
 # config_local.yaml is loaded FIRST. Any key here overrides config.yaml.
 # You only need to set the keys that differ from the defaults.
-#
-# Minimum required: set project_root to wherever you cloned this repo.
 
 paths:
   # Absolute path to the project root (the folder containing this file).
@@ -17,6 +15,19 @@ paths:
   #   Windows   : C:/Users/yourname/OneDrive/Documents/ZE
   project_root: "/path/to/your/ZE"
 
-  # raw_data is relative to project_root.
-  # Only change this if your data folder has a non-standard name.
+  # ── Data on an external drive or separate location ──────────────────────────
+  # Set raw_data to an ABSOLUTE path if your CSVs are not inside the repo.
+  # All scripts will automatically pick this up — no --raw-dir flag needed.
+  #
+  # Windows external drive example:
+  #   raw_data: "E:/EnFa_data"
+  #
+  # Mac/Linux external drive example:
+  #   raw_data: "/Volumes/MyDrive/EnFa_data"
+  #   raw_data: "/media/yourname/MyDrive/EnFa_data"
+  #
+  # NAS / network share:
+  #   raw_data: "//192.168.1.100/nas/EnFa_data"
+  #
+  # Leave commented out to use the default data/ folder inside the repo:
   # raw_data: "data"

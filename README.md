@@ -41,7 +41,11 @@ Download from Google Drive:
 
 1. Download `data_2026_05_26.zip`
 2. Extract the zip
-3. Move all `.csv` files into the `data/` folder inside this repo
+3. Place the CSV files — see the two options below
+
+#### Option A — Data inside the repo (default)
+
+Move all `.csv` files into the `data/` folder inside this repo:
 
 ```
 ZE/
@@ -50,6 +54,37 @@ ZE/
     ├── real_BatterieLeistung.csv
     └── ... (233 files total)
 ```
+
+#### Option B — Data on an external drive or separate location
+
+If disk space on your main drive is limited, keep the CSV files anywhere (external drive, NAS, etc.)
+and tell the project where they are via `config_local.yaml`:
+
+1. Copy the example config:
+
+```powershell
+# Windows PowerShell
+Copy-Item config_local.yaml.example config_local.yaml
+```
+
+```bash
+# Mac / Linux
+cp config_local.yaml.example config_local.yaml
+```
+
+2. Edit `config_local.yaml` — set `raw_data` to the absolute path of your data folder:
+
+```yaml
+paths:
+  project_root: "C:/Users/yourname/OneDrive/Documents/ZE"
+  raw_data: "E:/EnFa_data"          # Windows external drive
+  # raw_data: "/Volumes/MyDrive/EnFa_data"   # Mac external drive
+  # raw_data: "/media/yourname/MyDrive/EnFa_data"   # Linux
+```
+
+All scripts will now automatically read from that path — no `--raw-dir` flag needed.
+
+> `config_local.yaml` is gitignored — it never gets committed.
 
 > **Never rename or modify raw CSV files** — they are the source of truth.
 
