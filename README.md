@@ -7,6 +7,24 @@ full-data quality profiling, hourly resampling, TimescaleDB ingestion, and Grafa
 
 ---
 
+## Getting Started
+
+### 1. Clone this repository
+
+```powershell
+# Windows PowerShell
+git clone https://github.com/faizanoor3001/enfa-eda.git
+cd enfa-eda
+```
+
+```bash
+# Mac / Linux
+git clone https://github.com/faizanoor3001/enfa-eda.git
+cd enfa-eda
+```
+
+---
+
 ## Getting the Raw Data
 
 The 233 CSV signal files (~40.5 GB) are **not in git** — they are too large and contain operational data.
@@ -46,8 +64,7 @@ ZE/
 ### Step 1 — Analysis pipeline (EDA)
 
 ```powershell
-# Windows PowerShell
-cd "C:\path\to\ZE"
+# Windows PowerShell — run from the cloned repo root
 pip install -r requirements.txt
 
 # Run once in order
@@ -59,8 +76,7 @@ python scripts/06_signal_profiles.py --threads 6   # full-data quality profiles 
 ```
 
 ```bash
-# Mac / Linux
-cd /path/to/ZE
+# Mac / Linux — run from the cloned repo root
 pip install -r requirements.txt
 python scripts/01_scan_files.py
 python scripts/02_detect_schema.py

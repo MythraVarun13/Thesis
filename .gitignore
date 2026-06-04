@@ -4,10 +4,16 @@
 
 # ── Raw data (40.5 GB — never commit) ───────────────────────
 data/*.csv
-data/raw/
-data/processed/
-data/samples/
-data/external/
+data/raw/*
+data/processed/*
+data/samples/*
+data/external/*
+
+# Keep placeholder files so folders exist after git clone
+!data/.gitkeep
+!data/processed/.gitkeep
+!data/samples/.gitkeep
+!data/external/.gitkeep
 
 # ── Python environment ───────────────────────────────────────
 .venv/
