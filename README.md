@@ -13,14 +13,14 @@ full-data quality profiling, hourly resampling, TimescaleDB ingestion, and Grafa
 
 ```powershell
 # Windows PowerShell
-git clone https://github.com/faizanoor3001/enfa-eda.git
-cd enfa-eda
+git clone https://github.com/faizanoor3001/ZE.git
+cd ZE
 ```
 
 ```bash
 # Mac / Linux
-git clone https://github.com/faizanoor3001/enfa-eda.git
-cd enfa-eda
+git clone https://github.com/faizanoor3001/ZE.git
+cd ZE
 ```
 
 ### 2. Install Python dependencies
@@ -44,7 +44,7 @@ Download from Google Drive:
 3. Move all `.csv` files into the `data/` folder inside this repo
 
 ```
-enfa-eda/
+ZE/
 └── data/
     ├── greal_BatterieLadeZustand.csv
     ├── real_BatterieLeistung.csv
@@ -283,7 +283,7 @@ Aggregations that would take 20+ minutes with pandas take ~30 seconds with DuckD
 ## Project Structure
 
 ```
-enfa-eda/
+ZE/
 ├── README.md
 ├── requirements.txt                    ← install this (everyone)
 ├── requirements-dev.txt                ← optional (contributors only)
